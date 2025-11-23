@@ -7,6 +7,7 @@ import { useAppStore } from "@/store/useAppStore";
 import { useTypewriter } from "@/hooks/useTypewriter";
 import { getProductsByCategory, Product } from "@/lib/mockProducts";
 import { ProductDetailModal } from "./ProductDetailModal";
+import Image from "next/image";
 
 type Emotion = "happy" | "mysterious" | "serious";
 
@@ -15,14 +16,13 @@ export function NPCModal() {
     const [story, setStory] = useState("");
     const [emotion, setEmotion] = useState<Emotion>("happy");
     const [isLoading, setIsLoading] = useState(false);
-    const [hasError, setHasError] = useState(false);
 
     // Product modal state
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
     const [isProductModalOpen, setIsProductModalOpen] = useState(false);
 
     // Typewriter effect for AI messages
-    const { displayedText: displayedStory, isTyping } = useTypewriter({
+    const { displayedText: displayedStory } = useTypewriter({
         text: story,
         speed: 40,
         enabled: !isLoading,
@@ -34,23 +34,10 @@ export function NPCModal() {
             ? getProductsByCategory(currentLandmark.category)
             : [];
 
-    // Fetch story from AI when modal opens
-    useEffect(() => {
-        if (isNPCModalOpen && currentLandmark) {
-            fetchStory();
-        }
-        // Reset when modal closes
-        if (!isNPCModalOpen) {
-            setStory("");
-            setHasError(false);
-        }
-    }, [isNPCModalOpen, currentLandmark]);
-
     const fetchStory = async () => {
         if (!currentLandmark) return;
 
         setIsLoading(true);
-        setHasError(false);
 
         try {
             const response = await fetch("/api/chat/story", {
@@ -75,13 +62,25 @@ export function NPCModal() {
             }
         } catch (error) {
             console.error("Failed to fetch story:", error);
-            setHasError(true);
             setStory("Horas! The spirits are quiet today. Please try again later.");
             setEmotion("serious");
         } finally {
             setIsLoading(false);
         }
     };
+
+    // Fetch story from AI when modal opens
+    useEffect(() => {
+        if (isNPCModalOpen && currentLandmark) {
+            fetchStory();
+        }
+        // Reset when modal closes
+        if (!isNPCModalOpen) {
+            setStory("");
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isNPCModalOpen, currentLandmark]);
+
 
     const handleProductClick = (product: Product) => {
         setSelectedProduct(product);
@@ -151,14 +150,16 @@ export function NPCModal() {
 
                             {/* Landmark Image (if available) */}
                             {currentLandmark?.image_asset && (
-                                <div className="mb-6 rounded-xl overflow-hidden border border-white/20 shadow-lg">
-                                    <img
+                                <div className="mb-6 rounded-xl overflow-hidden border border-white/20 shadow-lg relative h-64 w-full">
+                                    <Image
                                         src={currentLandmark.image_asset}
                                         alt={currentLandmark.title}
-                                        className="w-full h-64 object-cover"
+                                        fill
+                                        className="object-cover"
                                         onError={(e) => {
                                             // Hide image if it fails to load
-                                            e.currentTarget.style.display = 'none';
+                                            const target = e.target as HTMLImageElement;
+                                            target.style.display = 'none';
                                         }}
                                     />
                                 </div>

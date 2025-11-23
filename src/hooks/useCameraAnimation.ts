@@ -7,33 +7,17 @@ import { useAppStore } from '@/store/useAppStore';
 export function useCameraAnimation() {
     const { camera } = useThree();
     const hasZoomedOnLoad = useRef(false);
-    const cameraTarget = useAppStore((state) => state.cameraTarget);
     const selectedLandmark3D = useAppStore((state) => state.selectedLandmark3D);
     const setIsCameraAnimating = useAppStore((state) => state.setIsCameraAnimating);
 
     // Camera animation spring
-    const [{ position }, api] = useSpring(() => ({
+    const [, api] = useSpring(() => ({
         position: [camera.position.x, camera.position.y, camera.position.z],
         config: config.slow,
         onChange: ({ value }) => {
             camera.position.set(value.position[0], value.position[1], value.position[2]);
         },
     }));
-
-    // Zoom on load effect
-    useEffect(() => {
-        if (!hasZoomedOnLoad.current) {
-            hasZoomedOnLoad.current = true;
-            zoomOnLoad();
-        }
-    }, []);
-
-    // Fly to landmark when selected
-    useEffect(() => {
-        if (selectedLandmark3D) {
-            flyToLandmark(selectedLandmark3D.position);
-        }
-    }, [selectedLandmark3D]);
 
     const flyToLandmark = (localPos: THREE.Vector3) => {
         setIsCameraAnimating(true);
@@ -93,6 +77,25 @@ export function useCameraAnimation() {
             },
         });
     };
+
+    // Zoom on load effect
+    useEffect(() => {
+        if (!hasZoomedOnLoad.current) {
+            hasZoomedOnLoad.current = true;
+            zoomOnLoad();
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    // Fly to landmark when selected
+    useEffect(() => {
+        if (selectedLandmark3D) {
+            flyToLandmark(selectedLandmark3D.position);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [selectedLandmark3D]);
+
+
 
     return {
         flyToLandmark,

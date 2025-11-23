@@ -109,8 +109,8 @@ export default function MarkerManager({ viewer }: MarkerManagerProps) {
         });
 
         // Handle marker clicks
-        const handleMarkerClick = (e: any) => {
-            const landmark = e.marker.data as Landmark;
+        const handleMarkerClick = (e: { marker: { data: Landmark } }) => {
+            const landmark = e.marker.data;
             setCurrentLandmark(landmark);
             setNPCModalOpen(true);
         };

@@ -122,16 +122,18 @@ export default function SceneContainer({ initialNodeId }: SceneContainerProps) {
                 console.log('✅ Viewer initialized successfully (waiting for panorama to load...)');
 
                 // Fallback timeout in case 'ready' event never fires
+                const currentIsLoading = isLoading;
                 setTimeout(() => {
-                    if (isMounted && isLoading) {
+                    if (isMounted && currentIsLoading) {
                         console.warn('⚠️ Panorama took too long to load, hiding spinner anyway');
                         setIsLoading(false);
                     }
                 }, 10000); // 10 second timeout
-            } catch (err: any) {
-                console.error('❌ Error initializing viewer:', err);
+            } catch (err) {
+                const error = err as Error;
+                console.error('❌ Error initializing viewer:', error);
                 if (isMounted) {
-                    setError(err.message || 'Failed to load virtual tour');
+                    setError(error.message || 'Failed to load virtual tour');
                     setIsLoading(false);
                 }
             }
@@ -146,6 +148,7 @@ export default function SceneContainer({ initialNodeId }: SceneContainerProps) {
                 viewerInstanceRef.current = null;
             }
         };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [initialNodeId]);
 
     if (error) {

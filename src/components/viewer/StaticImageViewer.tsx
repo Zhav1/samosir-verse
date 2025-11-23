@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useState } from 'react';
 import { useAppStore } from '@/store/useAppStore';
 import { motion } from 'framer-motion';
@@ -35,12 +36,13 @@ export default function StaticImageViewer() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: isLoading ? 0 : 1 }}
                 transition={{ duration: 0.5 }}
-                className="w-full h-full flex items-center justify-center"
+                className="w-full h-full flex items-center justify-center relative"
             >
-                <img
+                <Image
                     src={currentLandmark.image_asset}
                     alt={currentLandmark.title}
-                    className={`max-w-full max-h-full transition-transform duration-500 ${isZoomed ? 'scale-150 cursor-zoom-out' : 'cursor-zoom-in'
+                    fill
+                    className={`transition-transform duration-500 ${isZoomed ? 'scale-150 cursor-zoom-out' : 'cursor-zoom-in'
                         }`}
                     style={{ objectFit: 'contain' }}
                     onLoad={() => setIsLoading(false)}
@@ -56,8 +58,8 @@ export default function StaticImageViewer() {
                         <button
                             onClick={() => setIsZoomed(false)}
                             className={`p-3 rounded-full transition-all ${!isZoomed
-                                    ? 'bg-white/20 text-white'
-                                    : 'bg-transparent text-white/50 hover:bg-white/10'
+                                ? 'bg-white/20 text-white'
+                                : 'bg-transparent text-white/50 hover:bg-white/10'
                                 }`}
                             aria-label="Fit to screen"
                         >
@@ -66,8 +68,8 @@ export default function StaticImageViewer() {
                         <button
                             onClick={() => setIsZoomed(true)}
                             className={`p-3 rounded-full transition-all ${isZoomed
-                                    ? 'bg-white/20 text-white'
-                                    : 'bg-transparent text-white/50 hover:bg-white/10'
+                                ? 'bg-white/20 text-white'
+                                : 'bg-transparent text-white/50 hover:bg-white/10'
                                 }`}
                             aria-label="Zoom in"
                         >

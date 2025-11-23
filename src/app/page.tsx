@@ -4,7 +4,6 @@ import { SkyIsland } from "@/components/canvas/SkyIsland";
 import { TransitionOverlay } from "@/components/ui/TransitionOverlay";
 import PanoramaViewer from "@/components/explore/PanoramaViewer";
 import StaticImageViewer from "@/components/viewer/StaticImageViewer";
-import FilterSidebar from "@/components/ui/FilterSidebar";
 import { NPCModal } from "@/components/ui/NPCModal";
 import { useAppStore } from "@/store/useAppStore";
 import { ErrorBoundary } from "@/components/ErrorBoundary";

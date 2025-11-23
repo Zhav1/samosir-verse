@@ -1,5 +1,6 @@
 "use client";
 
+import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { ShoppingCart, MessageCircle } from 'lucide-react';
 import { Landmark } from '@/types';
@@ -45,10 +46,11 @@ export function ProductCard({ landmark }: ProductCardProps) {
         >
             {/* Product Image */}
             <div className="relative h-48 overflow-hidden">
-                <img
+                <Image
                     src={productImage}
                     alt={landmark.title}
-                    className="w-full h-full object-cover"
+                    fill
+                    className="object-cover"
                 />
                 {/* Category Badge */}
                 <div className="absolute top-3 right-3">
