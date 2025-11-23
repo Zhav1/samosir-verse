@@ -1,13 +1,13 @@
 'use client';
 
-import { useEffect } from 'react';
+import { Suspense, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import PanoramaViewer from '@/components/explore/PanoramaViewer';
 import FilterSidebar from '@/components/ui/FilterSidebar';
 import { NPCModal } from '@/components/ui/NPCModal';
 import { useAppStore } from '@/store/useAppStore';
 
-export default function ExplorePage() {
+function ExploreContent() {
     const searchParams = useSearchParams();
     const { setCurrentNode, setViewMode, setSelectedLandmark } = useAppStore();
 
@@ -38,5 +38,13 @@ export default function ExplorePage() {
             </div>
             <NPCModal />
         </main>
+    );
+}
+
+export default function ExplorePage() {
+    return (
+        <Suspense fallback={<div className="w-full h-screen bg-black" />}>
+            <ExploreContent />
+        </Suspense>
     );
 }
