@@ -2,18 +2,37 @@
 
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X } from "lucide-react";
+import { X, ShoppingBag } from "lucide-react";
 import { useAppStore } from "@/store/useAppStore";
+import { useTypewriter } from "@/hooks/useTypewriter";
+import { getProductsByCategory, Product } from "@/lib/mockProducts";
+import { ProductDetailModal } from "./ProductDetailModal";
 
 type Emotion = "happy" | "mysterious" | "serious";
 
 export function NPCModal() {
     const { isNPCModalOpen, setNPCModalOpen, currentLandmark, activeFilters } = useAppStore();
     const [story, setStory] = useState("");
-    const [displayedStory, setDisplayedStory] = useState("");
     const [emotion, setEmotion] = useState<Emotion>("happy");
     const [isLoading, setIsLoading] = useState(false);
     const [hasError, setHasError] = useState(false);
+
+    // Product modal state
+    const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+    const [isProductModalOpen, setIsProductModalOpen] = useState(false);
+
+    // Typewriter effect for AI messages
+    const { displayedText: displayedStory, isTyping } = useTypewriter({
+        text: story,
+        speed: 40,
+        enabled: !isLoading,
+    });
+
+    // Get relevant products based on category
+    const relevantProducts =
+        currentLandmark?.category === "food" || currentLandmark?.category === "music"
+            ? getProductsByCategory(currentLandmark.category)
+            : [];
 
     // Fetch story from AI when modal opens
     useEffect(() => {
@@ -22,22 +41,10 @@ export function NPCModal() {
         }
         // Reset when modal closes
         if (!isNPCModalOpen) {
-            setDisplayedStory("");
             setStory("");
             setHasError(false);
         }
     }, [isNPCModalOpen, currentLandmark]);
-
-    // Typewriter effect
-    useEffect(() => {
-        if (!story || displayedStory === story) return;
-
-        const timer = setTimeout(() => {
-            setDisplayedStory(story.slice(0, displayedStory.length + 1));
-        }, 30); // 30ms per character
-
-        return () => clearTimeout(timer);
-    }, [story, displayedStory]);
 
     const fetchStory = async () => {
         if (!currentLandmark) return;
@@ -74,6 +81,11 @@ export function NPCModal() {
         } finally {
             setIsLoading(false);
         }
+    };
+
+    const handleProductClick = (product: Product) => {
+        setSelectedProduct(product);
+        setIsProductModalOpen(true);
     };
 
     const emotionColors = {
@@ -171,6 +183,53 @@ export function NPCModal() {
                                 )}
                             </div>
 
+                            {/* Marketplace Section - Only show for food/music */}
+                            {relevantProducts.length > 0 && (
+                                <div className="mt-6">
+                                    <div className="flex items-center gap-2 mb-4">
+                                        <ShoppingBag className="w-5 h-5 text-purple-400" />
+                                        <h3 className="text-lg font-semibold text-white">
+                                            {currentLandmark?.category === "food"
+                                                ? "Kuliner Khas Samosir"
+                                                : "Seni & Budaya"}
+                                        </h3>
+                                    </div>
+
+                                    {/* Scrollable Product Cards */}
+                                    <div className="space-y-3 max-h-64 overflow-y-auto pr-2 custom-scrollbar">
+                                        {relevantProducts.map((product) => (
+                                            <motion.button
+                                                key={product.id}
+                                                whileHover={{ scale: 1.02 }}
+                                                whileTap={{ scale: 0.98 }}
+                                                onClick={() => handleProductClick(product)}
+                                                className="w-full bg-gradient-to-br from-white/5 to-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-4 hover:border-purple-400/50 transition-all duration-200 text-left"
+                                            >
+                                                <div className="flex gap-3">
+                                                    {/* Product Icon */}
+                                                    <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-purple-500/20 to-orange-500/20 flex items-center justify-center text-2xl flex-shrink-0">
+                                                        {product.category === "food" ? "🍽️" : "🎵"}
+                                                    </div>
+
+                                                    {/* Product Info */}
+                                                    <div className="flex-1 min-w-0">
+                                                        <h4 className="text-white font-semibold text-sm truncate mb-1">
+                                                            {product.name}
+                                                        </h4>
+                                                        <p className="text-orange-400 font-bold text-sm mb-1">
+                                                            Rp {product.price.toLocaleString("id-ID")}
+                                                        </p>
+                                                        <p className="text-white/60 text-xs line-clamp-2">
+                                                            {product.description}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </motion.button>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
                             {/* Footer info */}
                             <div className="mt-6 pt-6 border-t border-white/10">
                                 <p className="text-white/50 text-xs text-center">
@@ -179,6 +238,13 @@ export function NPCModal() {
                             </div>
                         </div>
                     </motion.div>
+
+                    {/* Product Detail Modal */}
+                    <ProductDetailModal
+                        product={selectedProduct}
+                        isOpen={isProductModalOpen}
+                        onClose={() => setIsProductModalOpen(false)}
+                    />
                 </>
             )}
         </AnimatePresence>

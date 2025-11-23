@@ -28,6 +28,10 @@ interface AppState {
     currentLandmark: Landmark | null;
     setNPCModalOpen: (isOpen: boolean) => void;
     setCurrentLandmark: (landmark: Landmark | null) => void;
+    
+    // Deep linking support
+    selectedLandmarkId: string | null;
+    setSelectedLandmark: (landmarkId: string | null) => void;
 
     // Phase 5: 3D View Mode State Machine
     viewMode: ViewMode;
@@ -61,6 +65,10 @@ export const useAppStore = create<AppState>((set) => ({
     currentLandmark: null,
     setNPCModalOpen: (isOpen) => set({ isNPCModalOpen: isOpen }),
     setCurrentLandmark: (landmark) => set({ currentLandmark: landmark }),
+    
+    // Deep linking support
+    selectedLandmarkId: null,
+    setSelectedLandmark: (landmarkId) => set({ selectedLandmarkId: landmarkId }),
 
     // Phase 5: View Mode State Machine
     viewMode: '3d-sky',
