@@ -115,7 +115,7 @@ export function NPCModal() {
                         <div className="absolute inset-0 bg-gradient-to-br from-black/95 via-black/90 to-black/95 backdrop-blur-xl" />
 
                         {/* Content */}
-                        <div className="relative p-6 flex flex-col h-full">
+                        <div className="relative p-6 flex flex-col min-h-full">
                             {/* Close button */}
                             <button
                                 onClick={() => setNPCModalOpen(false)}
@@ -166,7 +166,7 @@ export function NPCModal() {
                             )}
 
                             {/* Story Content */}
-                            <div className={`bg-gradient-to-br ${emotionColors[emotion]} backdrop-blur-sm rounded-xl p-6 min-h-[120px] border ${emotionBorders[emotion]} flex-1`}>
+                            <div className={`bg-gradient-to-br ${emotionColors[emotion]} backdrop-blur-sm rounded-xl p-6 min-h-[120px] border ${emotionBorders[emotion]}`}>
                                 {isLoading ? (
                                     <div className="flex items-center gap-2 text-white/70">
                                         <div className="w-2 h-2 bg-white/70 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
