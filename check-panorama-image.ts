@@ -34,7 +34,7 @@ async function checkPanoramas() {
     for (const file of testFiles) {
         if (existsSync(file)) {
             const stats = statSync(file);
-            const dimensions = sizeOf(file);
+            const dimensions = sizeOf(readFileSync(file));
             const aspectRatio = dimensions.width! / dimensions.height!;
             
             console.log(`✅ ${file}`);

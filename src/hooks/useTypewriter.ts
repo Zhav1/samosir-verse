@@ -24,61 +24,64 @@ export function useTypewriter({
   enabled = true,
 }: UseTypewriterOptions): UseTypewriterReturn {
   const [displayedText, setDisplayedText] = useState('');
-  const [currentIndex, setCurrentIndex] = useState(0);
   const [isTyping, setIsTyping] = useState(false);
+  const currentIndexRef = useRef(0);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Reset function
   const reset = () => {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
     setDisplayedText('');
-    setCurrentIndex(0);
     setIsTyping(false);
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
+    currentIndexRef.current = 0;
   };
 
+  // Handle text changes
   useEffect(() => {
-    // If effect is disabled, show full text immediately
+    currentIndexRef.current = 0;
+    setDisplayedText('');
+    // Don't set isTyping here, let the typing effect handle it
+  }, [text]);
+
+  useEffect(() => {
+    // Cleanup previous timeout
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+
+    // If disabled, show full text immediately
     if (!enabled) {
       setDisplayedText(text);
       setIsTyping(false);
       return;
     }
 
-    // Reset when text changes
-    if (text !== displayedText && currentIndex === 0) {
-      setDisplayedText('');
-      setIsTyping(true);
-    }
-
-    // If we've finished typing
-    if (currentIndex >= text.length) {
-      setIsTyping(false);
-      if (onComplete) {
-        onComplete();
-      }
-      return;
-    }
-
-    // Type next character
-    setIsTyping(true);
-    timeoutRef.current = setTimeout(() => {
-      setDisplayedText(text.slice(0, currentIndex + 1));
-      setCurrentIndex((prev) => prev + 1);
-    }, speed);
-
-    return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
+    // Typing loop
+    const typeNextChar = () => {
+      const currentIndex = currentIndexRef.current;
+      
+      if (currentIndex < text.length) {
+        setIsTyping(true);
+        setDisplayedText(text.slice(0, currentIndex + 1));
+        currentIndexRef.current += 1;
+        
+        timeoutRef.current = setTimeout(typeNextChar, speed);
+      } else {
+        setIsTyping(false);
+        if (onComplete) onComplete();
       }
     };
-  }, [text, currentIndex, speed, enabled, onComplete]);
 
-  // Reset when text prop changes
-  useEffect(() => {
-    reset();
-  }, [text]);
+    // Start typing if we haven't finished and text is not empty
+    if (text && currentIndexRef.current < text.length) {
+       timeoutRef.current = setTimeout(typeNextChar, speed);
+    } else if (!text) {
+        setDisplayedText('');
+        setIsTyping(false);
+    }
+
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
+  }, [text, speed, enabled, onComplete]);
 
   return {
     displayedText,
