@@ -3,6 +3,8 @@
 import SceneContainer from '@/components/viewer/SceneContainer';
 import { useAppStore } from '@/store/useAppStore';
 
+import ItemDetailModal from '@/components/ui/ItemDetailModal';
+
 export default function PanoramaViewer() {
     // Get currentNodeId from store (set when entering 360° view)
     const currentNodeId = useAppStore((state) => state.currentNodeId);
@@ -13,6 +15,7 @@ export default function PanoramaViewer() {
     return (
         <div className="relative w-full h-screen bg-black">
             <SceneContainer initialNodeId={initialNodeId} />
+            <ItemDetailModal />
         </div>
     );
 }

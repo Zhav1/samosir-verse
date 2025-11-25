@@ -108,11 +108,49 @@ export default function MarkerManager({ viewer }: MarkerManagerProps) {
             }
         });
 
+        // Add Special Hasapi Marker
+        try {
+            markersPlugin.addMarker({
+                id: 'hasapi-marker',
+                position: { yaw: 6.2739, pitch: -0.4881 },
+                html: `
+                  <div class="group relative flex items-center justify-center" style="width: 100%; height: 100%;">
+                    <!-- Hitbox Transparan (Area Klik) -->
+                    <div class="absolute inset-0 hover: transition-colors cursor-pointer rounded-lg"></div>
+                    
+                    <!-- Floating Button (Muncul saat Hover group) -->
+                    <div class="absolute left-full ml-4 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-[-10px] group-hover:translate-x-0">
+                      <button class="bg-white/90 backdrop-blur text-gray-900 px-4 py-2 rounded-full shadow-lg font-semibold text-sm flex items-center gap-2 hover:bg-white">
+                        <span>🔍 View Detailed</span>
+                      </button>
+                    </div>
+                  </div>
+                `,
+                size: { width: 80, height: 450 },
+                anchor: 'center center',
+                tooltip: 'Hasapi (Batak Lute)',
+                data: {
+                    id: 'hasapi-object',
+                    title: 'Hasapi',
+                    category: 'music',
+                    description: 'Traditional Batak Lute',
+                    node_id: currentNodeId,
+                    coordinates: { yaw: 6.2739, pitch: -0.4881 }
+                } as any,
+            });
+        } catch (e) {
+            console.error('Error adding Hasapi marker:', e);
+        }
+
         // Handle marker clicks
         const handleMarkerClick = (e: any) => {
             const landmark = e.marker.data;
             setCurrentLandmark(landmark);
-            setNPCModalOpen(true);
+            
+            // Only open NPC modal if it's NOT the Hasapi object
+            if (landmark.id !== 'hasapi-object') {
+                setNPCModalOpen(true);
+            }
         };
 
         markersPlugin.addEventListener('select-marker', handleMarkerClick);
