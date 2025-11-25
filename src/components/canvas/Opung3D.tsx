@@ -29,8 +29,8 @@ export default function Opung3D({ }: Opung3DProps) {
             <Float speed={2} rotationIntensity={0.2} floatIntensity={0.5} floatingRange={[-0.1, 0.1]}>
                 <primitive
                     object={scene}
-                    scale={0.12}
-                    position={[0, -6, 0]}
+                    scale={0.14}
+                    position={[0, -8, 0]}
                     rotation={[0, 0, 0]}
                 />
             </Float>

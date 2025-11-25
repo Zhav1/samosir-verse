@@ -1,5 +1,7 @@
 "use client";
 
+import { Suspense, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { SkyIsland } from "@/components/canvas/SkyIsland";
 import { TransitionOverlay } from "@/components/ui/TransitionOverlay";
 import PanoramaViewer from "@/components/explore/PanoramaViewer";
@@ -9,9 +11,40 @@ import { useAppStore } from "@/store/useAppStore";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { useTranslation } from "@/hooks/useTranslation";
 import { LocalizedText } from "@/components/ui/LocalizedText";
+import { MessageCircle } from "lucide-react";
+import { ProductDetailModal } from "@/components/ui/ProductDetailModal";
+import { getProductById } from "@/lib/mockProducts";
 
-export default function Home() {
-  const viewMode = useAppStore((state) => state.viewMode);
+function HomeContent() {
+  const {
+    viewMode,
+    setCurrentNode,
+    setViewMode,
+    setSelectedLandmark,
+    itemDetailId,
+    setItemDetailId,
+    isNPCModalOpen,
+    setNPCModalOpen
+  } = useAppStore();
+
+  const searchParams = useSearchParams();
+
+  // Deep linking support
+  useEffect(() => {
+    const nodeId = searchParams.get('node');
+    const landmarkId = searchParams.get('landmark');
+
+    if (nodeId) {
+      // Navigate to specific node
+      setCurrentNode(nodeId);
+      setViewMode('360-panorama');
+
+      // If landmark is specified, auto-select it
+      if (landmarkId) {
+        setSelectedLandmark(landmarkId);
+      }
+    }
+  }, [searchParams, setCurrentNode, setViewMode, setSelectedLandmark]);
 
   return (
     <>
@@ -28,9 +61,23 @@ export default function Home() {
       {viewMode === '360-panorama' && (
         <main className="w-full h-screen overflow-hidden relative bg-black">
           <ErrorBoundary>
-            {/* Panorama Viewer - Full screen */}
-            <div className="absolute inset-0 z-10">
-              <PanoramaViewer />
+            {/* Sidebar is only visible in panorama mode */}
+            <div className="w-full h-full relative">
+              {/* Panorama Viewer - Full screen */}
+              <div className="absolute inset-0 z-10">
+                <PanoramaViewer />
+              </div>
+
+              {/* Floating Chat Button - Only visible when NPC Modal is closed */}
+              {!isNPCModalOpen && (
+                <button
+                  onClick={() => setNPCModalOpen(true)}
+                  className="fixed top-20 md:top-4 right-4 z-[60] p-3 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 shadow-lg transition-all duration-300 hover:scale-110 group"
+                  aria-label="Open Chat"
+                >
+                  <MessageCircle className="w-6 h-6 text-white group-hover:text-amber-400 transition-colors" />
+                </button>
+              )}
             </div>
 
             {/* NPC Modal Sidebar */}
@@ -47,9 +94,22 @@ export default function Home() {
       {viewMode === 'static-image' && (
         <main className="w-full h-screen overflow-hidden relative bg-black">
           <ErrorBoundary>
-            {/* Static Image Viewer - Full screen */}
-            <div className="absolute inset-0 z-10">
-              <StaticImageViewer />
+            <div className="w-full h-full relative">
+              {/* Static Image Viewer - Full screen */}
+              <div className="absolute inset-0 z-10">
+                <StaticImageViewer />
+              </div>
+
+              {/* Floating Chat Button - Only visible when NPC Modal is closed */}
+              {!isNPCModalOpen && (
+                <button
+                  onClick={() => setNPCModalOpen(true)}
+                  className="fixed top-20 md:top-4 right-4 z-[60] p-3 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 shadow-lg transition-all duration-300 hover:scale-110 group"
+                  aria-label="Open Chat"
+                >
+                  <MessageCircle className="w-6 h-6 text-white group-hover:text-amber-400 transition-colors" />
+                </button>
+              )}
             </div>
 
             {/* NPC Modal Sidebar */}
@@ -62,7 +122,22 @@ export default function Home() {
           </ErrorBoundary>
         </main>
       )}
+
+      {/* Product Detail Modal for Hasapi/Marketplace items */}
+      <ProductDetailModal
+        product={itemDetailId ? getProductById(itemDetailId) || null : null}
+        isOpen={!!itemDetailId && itemDetailId !== 'hasapi'}
+        onClose={() => setItemDetailId(null)}
+      />
     </>
+  );
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={<div className="w-full h-screen bg-black" />}>
+      <HomeContent />
+    </Suspense>
   );
 }
 

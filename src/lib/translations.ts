@@ -99,9 +99,9 @@ export const translations = {
       bt: 'Marfikir dope Opung...',
     },
     poweredBy: {
-      en: 'Powered by SAMOSIR-VERSE & Llama-3-8B • Cultural heritage of Samosir Island',
-      id: 'Didukung oleh SAMOSIR-VERSE & Llam-3-8B • Warisan budaya Pulau Samosir',
-      bt: 'Diurupi SAMOSIR-VERSE & Llam-3-8B • Tona budaya Pulo Samosir',
+      en: 'Powered by SAMOSIR-VERSE & Llama-3.1-8B • Cultural heritage of Samosir Island',
+      id: 'Didukung oleh SAMOSIR-VERSE & Llama-3.1-8B • Warisan budaya Pulau Samosir',
+      bt: 'Diurupi SAMOSIR-VERSE & Llama-3.1-8B • Tona budaya Pulo Samosir',
     },
   },
   itemDetail: {
