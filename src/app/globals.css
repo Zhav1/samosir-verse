@@ -2,6 +2,19 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Placeholder for Surat Batak font */
+@font-face {
+  font-family: 'Surat Batak';
+  src: url('/fonts/SuratBatak.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+.font-surat-batak {
+  font-family: 'Surat Batak', 'Noto Sans Batak', sans-serif;
+}
+
 :root {
   --background: #ffffff;
   --foreground: #171717;

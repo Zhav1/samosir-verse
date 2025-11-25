@@ -7,6 +7,8 @@ import { MarkersPlugin } from '@photo-sphere-viewer/markers-plugin';
 import '@photo-sphere-viewer/core/index.css';
 import '@photo-sphere-viewer/virtual-tour-plugin/index.css';
 import '@photo-sphere-viewer/markers-plugin/index.css';
+import { GyroscopePlugin } from '@photo-sphere-viewer/gyroscope-plugin';
+import { Compass } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { Node } from '@/types';
 import MarkerManager from './MarkerManager';
@@ -22,6 +24,7 @@ export default function SceneContainer({ initialNodeId }: SceneContainerProps) {
     const viewerInstanceRef = useRef<Viewer | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [isGyroEnabled, setIsGyroEnabled] = useState(false);
 
     useEffect(() => {
         // Guard against double initialization
@@ -91,7 +94,11 @@ export default function SceneContainer({ initialNodeId }: SceneContainerProps) {
                                 zoomTo: 20,
                             }
                         }],
-                        [MarkersPlugin, {}]
+                        [MarkersPlugin, {}],
+                        [GyroscopePlugin, {
+                            touchmove: true,
+                            absolutePosition: true,
+                        }]
                     ],
                 });
 
@@ -151,6 +158,38 @@ export default function SceneContainer({ initialNodeId }: SceneContainerProps) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [initialNodeId]);
 
+    const toggleGyroscope = async () => {
+        if (!viewerInstanceRef.current) return;
+
+        const gyroPlugin = viewerInstanceRef.current.getPlugin(GyroscopePlugin) as any;
+        if (!gyroPlugin) return;
+
+        try {
+            if (isGyroEnabled) {
+                gyroPlugin.stop();
+                setIsGyroEnabled(false);
+            } else {
+                await gyroPlugin.start();
+                setIsGyroEnabled(true);
+            }
+        } catch (err) {
+            console.error('Failed to toggle gyroscope:', err);
+            // On iOS 13+ we might need to request permission
+            if (typeof DeviceOrientationEvent !== 'undefined' && (DeviceOrientationEvent as any).requestPermission) {
+                (DeviceOrientationEvent as any).requestPermission()
+                    .then((response: string) => {
+                        if (response === 'granted') {
+                            gyroPlugin.start();
+                            setIsGyroEnabled(true);
+                        } else {
+                            alert('Gyroscope permission denied');
+                        }
+                    })
+                    .catch(console.error);
+            }
+        }
+    };
+
     if (error) {
         return (
             <div className="w-full h-full flex items-center justify-center bg-black text-white">
@@ -172,6 +211,19 @@ export default function SceneContainer({ initialNodeId }: SceneContainerProps) {
         <>
             <div ref={viewerRef} className="w-full h-full absolute inset-0" />
             <MarkerManager viewer={viewerInstanceRef.current} />
+
+            {/* Gyroscope Toggle Button - Mobile Only */}
+            <button
+                onClick={toggleGyroscope}
+                className={`absolute top-4 right-4 z-10 p-3 rounded-full backdrop-blur-md transition-all duration-300 ${isGyroEnabled
+                        ? 'bg-blue-500/80 text-white shadow-[0_0_15px_rgba(59,130,246,0.5)]'
+                        : 'bg-black/30 text-white/70 hover:bg-black/50'
+                    } md:hidden`}
+                aria-label="Toggle Gyroscope"
+            >
+                <Compass className={`w-6 h-6 ${isGyroEnabled ? 'animate-pulse' : ''}`} />
+            </button>
+
             {isLoading && (
                 <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/80 text-white">
                     <div className="flex flex-col items-center gap-4">

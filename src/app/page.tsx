@@ -7,6 +7,8 @@ import StaticImageViewer from "@/components/viewer/StaticImageViewer";
 import { NPCModal } from "@/components/ui/NPCModal";
 import { useAppStore } from "@/store/useAppStore";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { useTranslation } from "@/hooks/useTranslation";
+import { LocalizedText } from "@/components/ui/LocalizedText";
 
 export default function Home() {
   const viewMode = useAppStore((state) => state.viewMode);
@@ -67,6 +69,7 @@ export default function Home() {
 function ReturnToSkyButton() {
   const setViewMode = useAppStore((state) => state.setViewMode);
   const setSelectedLandmark3D = useAppStore((state) => state.setSelectedLandmark3D);
+  const { t } = useTranslation();
 
   const handleReturn = () => {
     setViewMode('3d-sky');
@@ -91,7 +94,7 @@ function ReturnToSkyButton() {
       >
         <path d="M19 12H5M12 19l-7-7 7-7" />
       </svg>
-      <span className="font-medium">Return to Sky View</span>
+      <span className="font-medium"><LocalizedText text={t('explore.backToMap')} /></span>
     </button>
   );
 }

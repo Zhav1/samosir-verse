@@ -45,6 +45,14 @@ interface AppState {
     isCameraAnimating: boolean;
     setCameraTarget: (target: THREE.Vector3 | null) => void;
     setIsCameraAnimating: (isAnimating: boolean) => void;
+
+    // Language System
+    language: 'id' | 'en' | 'bt';
+    setLanguage: (lang: 'id' | 'en' | 'bt') => void;
+
+    // Item Detail Modal State
+    itemDetailId: string | null;
+    setItemDetailId: (id: string | null) => void;
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -82,4 +90,12 @@ export const useAppStore = create<AppState>((set) => ({
     isCameraAnimating: false,
     setCameraTarget: (target) => set({ cameraTarget: target }),
     setIsCameraAnimating: (isAnimating) => set({ isCameraAnimating: isAnimating }),
+
+    // Language System
+    language: 'id', // Default to Indonesian
+    setLanguage: (lang) => set({ language: lang }),
+
+    // Item Detail Modal State
+    itemDetailId: null,
+    setItemDetailId: (id: string | null) => set({ itemDetailId: id }),
 }));

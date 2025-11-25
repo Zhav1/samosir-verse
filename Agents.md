@@ -441,10 +441,6 @@ Completed:
 ✔ marker_config field added to Landmark type
 
 Pending (Remaining 10%):
-□ Run seed-all-landmarks.ts in production
-□ Add real 360 panorama photos (currently placeholders) 
-□ Add audio files to /public/audio/
-□ Apply scale={0.0005} verification
 □ Improve raycasting precision
 □ Complete TransitionOverlay → router push sync
 □ Deep linking: /explore?node=x&focus=y
@@ -483,3 +479,11 @@ All 25 glowmarks must map to real 360 nodes, even if multiple share the same nod
 Opung must always use lore_context, never invent facts
 
 Agents reading this file must treat it as “persistent world-state”
+
+14. Known Issues & Future Work (Localization)
+- **Hardcoded Strings**: Many UI elements (e.g., Explore page headers, buttons) are hardcoded in English. The `LanguageSwitcher` currently only affects dynamic content (AI Story) and specific components wrapped in `LocalizedText`.
+- **Batak Toba Mode**: Currently, selecting 'BT' applies the Surat Batak font style but does not translate the hardcoded English text. This results in English text being rendered in Batak glyphs without the intended dual-text or translation.
+- **Resolution Plan**:
+    - Create a dictionary/translation file for static UI text.
+    - Replace hardcoded strings with a translation hook (e.g., `useTranslation`).
+    - Ensure `LocalizedText` or the translation hook handles the dual-text display for all static content when 'BT' is active.

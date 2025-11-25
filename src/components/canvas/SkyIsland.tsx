@@ -11,6 +11,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import { useEffect, useState } from "react";
 import FilterSidebar from "@/components/ui/FilterSidebar";
+import { useTranslation } from "@/hooks/useTranslation";
+import { LocalizedText } from "@/components/ui/LocalizedText";
+import { useRouter } from "next/navigation";
 
 export function SkyIsland() {
     const selectedLandmark3D = useAppStore((state) => state.selectedLandmark3D);
@@ -19,49 +22,48 @@ export function SkyIsland() {
     const isCameraAnimating = useAppStore((state) => state.isCameraAnimating);
     const setCurrentLandmark = useAppStore((state) => state.setCurrentLandmark);
     const setNPCModalOpen = useAppStore((state) => state.setNPCModalOpen);
-    const [showEnterButton, setShowEnterButton] = useState(false);
-
-    // Show "Enter 360° View" button 3 seconds after camera animation completes
-    useEffect(() => {
-        if (selectedLandmark3D && !isCameraAnimating) {
-            const timer = setTimeout(() => {
-                setShowEnterButton(true);
-            }, 3000);
-            return () => clearTimeout(timer);
-        } else {
-            setShowEnterButton(false);
-        }
-    }, [selectedLandmark3D, isCameraAnimating]);
+    const { t } = useTranslation();
+    const [isLoading, setIsLoading] = useState(false);
+    const router = useRouter();
 
     const handleEnter360View = () => {
         if (!selectedLandmark3D) return;
 
-        setCurrentNode(selectedLandmark3D.nodeId);
+        setIsLoading(true);
 
-        // Auto-open NPC Modal
-        if (selectedLandmark3D.landmark) {
-            setCurrentLandmark(selectedLandmark3D.landmark);
-            setNPCModalOpen(true);
-        }
+        // Small delay to allow the UI to update before the heavy transition starts
+        // This makes the click feel responsive immediately
+        setTimeout(() => {
+            setCurrentNode(selectedLandmark3D.nodeId);
 
-        // Determine if this should be panorama or static-image based on landmark
-        const landmark = selectedLandmark3D.landmark;
-        console.log('🎯 Enter View clicked for:', {
-            title: landmark.title,
-            category: landmark.category,
-            display_mode: landmark.display_mode,
-            nodeId: selectedLandmark3D.nodeId
-        });
+            // Auto-open NPC Modal
+            if (selectedLandmark3D.landmark) {
+                setCurrentLandmark(selectedLandmark3D.landmark);
+                setNPCModalOpen(true);
+            }
 
-        // Only use static-image if explicitly set in display_mode
-        if (landmark.display_mode === 'static-image') {
-            console.log('📸 Setting view mode to static-image');
-            setViewMode('static-image');
-        } else {
-            // Default to panorama for all categories
-            console.log('🌍 Setting view mode to 360-panorama');
-            setViewMode('360-panorama');
-        }
+            // Determine if this should be panorama or static-image based on landmark
+            const landmark = selectedLandmark3D.landmark;
+            console.log('🎯 Enter View clicked for:', {
+                title: landmark.title,
+                category: landmark.category,
+                display_mode: landmark.display_mode,
+                nodeId: selectedLandmark3D.nodeId
+            });
+
+            // Only use static-image if explicitly set in display_mode
+            if (landmark.display_mode === 'static-image') {
+                console.log('📸 Setting view mode to static-image');
+                setViewMode('static-image');
+            } else {
+                // Default to panorama for all categories
+                console.log('🌍 Setting view mode to 360-panorama');
+                setViewMode('360-panorama');
+            }
+
+            // Note: We don't set isLoading(false) here because the component will unmount/transition
+            // If we stay on this page for some reason, we might want to reset it, but usually we navigate away
+        }, 500);
     };
 
     return (
@@ -121,17 +123,17 @@ export function SkyIsland() {
                         className="text-center"
                     >
                         <h1 className="text-6xl font-bold text-white drop-shadow-2xl mb-4">
-                            Samosir 360
+                            <LocalizedText text={t('skyIsland.title')} />
                         </h1>
                         <p className="text-xl text-white/90 drop-shadow-lg mb-8">
-                            Explore the Cultural Heritage of Samosir Island
+                            <LocalizedText text={t('skyIsland.subtitle')} />
                         </p>
                         <motion.div
                             animate={{ y: [0, 10, 0] }}
                             transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
                             className="text-white/80 text-sm"
                         >
-                            Click on a glowing landmark to explore
+                            <LocalizedText text={t('skyIsland.instruction')} />
                         </motion.div>
                     </motion.div>
                 </div>
@@ -139,20 +141,37 @@ export function SkyIsland() {
 
             {/* Phase 5: Enter 360° View Button */}
             <AnimatePresence>
-                {(selectedLandmark3D && !isCameraAnimating && showEnterButton) && (
+                {selectedLandmark3D && (
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: 20 }}
                         className="absolute bottom-24 left-1/2 -translate-x-1/2 z-20"
                     >
-                        <button
-                            onClick={handleEnter360View}
-                            className="group flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-purple-500/90 to-blue-500/90 backdrop-blur-md border-2 border-white/30 rounded-full text-white hover:from-purple-600/95 hover:to-blue-600/95 transition-all duration-300 shadow-2xl hover:shadow-purple-500/50 hover:scale-105 text-lg font-semibold"
-                        >
-                            <span>Enter View</span>
-                            <ArrowRight className="w-6 h-6 group-hover:translate-x-2 transition-transform" />
-                        </button>
+                        {isCameraAnimating ? (
+                            <div className="flex items-center gap-3 px-6 py-3 bg-black/50 backdrop-blur-md border border-white/10 rounded-full text-white/80 shadow-lg">
+                                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                <span className="text-sm font-medium"><LocalizedText text={t('common.loading')} /></span>
+                            </div>
+                        ) : (
+                            <button
+                                onClick={handleEnter360View}
+                                disabled={isLoading}
+                                className="group flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-purple-500/90 to-blue-500/90 backdrop-blur-md border-2 border-white/30 rounded-full text-white hover:from-purple-600/95 hover:to-blue-600/95 transition-all duration-300 shadow-2xl hover:shadow-purple-500/50 hover:scale-105 text-lg font-semibold disabled:opacity-70 disabled:cursor-not-allowed"
+                            >
+                                {isLoading ? (
+                                    <>
+                                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                        <span><LocalizedText text={t('common.loading')} /></span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <span><LocalizedText text={t('skyIsland.enterView')} /></span>
+                                        <ArrowRight className="w-6 h-6 group-hover:translate-x-2 transition-transform" />
+                                    </>
+                                )}
+                            </button>
+                        )}
                     </motion.div>
                 )}
             </AnimatePresence>

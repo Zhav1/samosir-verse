@@ -5,22 +5,34 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X } from 'lucide-react';
 import { useAppStore } from '@/store/useAppStore';
 import { CATEGORY_CONFIG, CATEGORIES, Category } from '@/lib/constants';
+import { LanguageSwitcher } from './LanguageSwitcher';
+import { LocalizedText } from './LocalizedText';
+import { useTranslation } from '@/hooks/useTranslation';
 
 export default function FilterSidebar() {
     const [isMobileOpen, setIsMobileOpen] = useState(false);
     const { activeFilters, toggleFilter } = useAppStore();
+    const { t } = useTranslation();
 
     const handleFilterToggle = (category: Category) => {
         toggleFilter(category);
-        // Glitter effect is handled by AnimatePresence below
     };
 
     const SidebarContent = () => (
         <div className="flex flex-col gap-6 p-6">
             {/* Header */}
             <div className="text-center">
-                <h2 className="text-xl font-bold text-white mb-1">Cultural Lens</h2>
-                <p className="text-xs text-white/60">Filter by category</p>
+                <h2 className="text-xl font-bold text-white mb-1">
+                    <LocalizedText text={t('explore.title')} />
+                </h2>
+                <p className="text-xs text-white/60">
+                    <LocalizedText text={t('explore.subtitle')} />
+                </p>
+            </div>
+
+            {/* Language Switcher */}
+            <div className="flex justify-center">
+                <LanguageSwitcher />
             </div>
 
             {/* Filter Buttons */}
@@ -91,7 +103,7 @@ export default function FilterSidebar() {
                                     className={`text-sm font-medium transition-colors duration-300 ${isActive ? 'text-white' : 'text-white/60'
                                         }`}
                                 >
-                                    {config.label}
+                                    <LocalizedText text={t(`filters.${category}`)} />
                                 </span>
 
                                 {/* Active indicator */}

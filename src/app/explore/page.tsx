@@ -6,10 +6,12 @@ import PanoramaViewer from '@/components/explore/PanoramaViewer';
 import FilterSidebar from '@/components/ui/FilterSidebar';
 import { NPCModal } from '@/components/ui/NPCModal';
 import { useAppStore } from '@/store/useAppStore';
+import { ProductDetailModal } from '@/components/ui/ProductDetailModal';
+import { getProductById } from '@/lib/mockProducts';
 
 function ExploreContent() {
     const searchParams = useSearchParams();
-    const { setCurrentNode, setViewMode, setSelectedLandmark } = useAppStore();
+    const { setCurrentNode, setViewMode, setSelectedLandmark, itemDetailId, setItemDetailId } = useAppStore();
 
     // Deep linking support
     useEffect(() => {
@@ -30,6 +32,9 @@ function ExploreContent() {
         }
     }, [searchParams, setCurrentNode, setViewMode, setSelectedLandmark]);
 
+    // Debug logging
+    console.log('ExplorePage Render:', { itemDetailId, product: itemDetailId ? getProductById(itemDetailId) : null });
+
     return (
         <main className="w-full h-screen overflow-hidden relative">
             <FilterSidebar />
@@ -37,6 +42,13 @@ function ExploreContent() {
                 <PanoramaViewer />
             </div>
             <NPCModal />
+
+            {/* Product Detail Modal for Hasapi/Marketplace items */}
+            <ProductDetailModal
+                product={itemDetailId ? getProductById(itemDetailId) || null : null}
+                isOpen={!!itemDetailId && itemDetailId !== 'hasapi'}
+                onClose={() => setItemDetailId(null)}
+            />
         </main>
     );
 }

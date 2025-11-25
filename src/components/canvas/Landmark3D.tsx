@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
 import * as THREE from 'three';
@@ -22,8 +22,17 @@ interface Landmark3DProps {
 export function Landmark3D({ id, position, nodeId, title, category, landmark }: Landmark3DProps) {
     const meshRef = useRef<THREE.Mesh>(null);
     const [hovered, setHovered] = useState(false);
+    const [isMobile, setIsMobile] = useState(false);
     const setSelectedLandmark3D = useAppStore((state) => state.setSelectedLandmark3D);
     const setViewMode = useAppStore((state) => state.setViewMode);
+
+    // Check for mobile device
+    useEffect(() => {
+        const checkMobile = () => setIsMobile(window.innerWidth < 768);
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
+    }, []);
 
     // Pulsing animation
     useFrame((state) => {
@@ -89,17 +98,21 @@ export function Landmark3D({ id, position, nodeId, title, category, landmark }: 
                 />
             </mesh>
 
-            {/* Tooltip on hover */}
-            {hovered && (
+            {/* Tooltip on hover or always on mobile */}
+            {(hovered || isMobile) && (
                 <Html
                     position={[0, 0.3, 0]}
                     center
                     style={{
                         pointerEvents: 'none',
                         userSelect: 'none',
+                        zIndex: 10, // Ensure it's above other elements
                     }}
                 >
-                    <div className="bg-black/80 text-white px-3 py-1.5 rounded-lg text-sm whitespace-nowrap backdrop-blur-sm">
+                    <div className={`
+                        px-3 py-1.5 rounded-lg text-sm whitespace-nowrap backdrop-blur-sm transition-all duration-300
+                        ${isMobile ? 'bg-black/60 text-white/90 text-xs' : 'bg-black/80 text-white'}
+                    `}>
                         {title}
                     </div>
                 </Html>
