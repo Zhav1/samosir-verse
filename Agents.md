@@ -439,6 +439,12 @@ Completed:
 ✔ useAudio.ts - Audio crossfade system
 ✔ seed-all-landmarks.ts - Complete seeder (12 nodes + 25 landmarks)
 ✔ marker_config field added to Landmark type
+✔ Gyroscope support for mobile devices (@photo-sphere-viewer/gyroscope-plugin)
+✔ AI Chatbot fully functional with context-aware responses
+✔ Mobile UI: Glowmark names visible on hover/tap
+✔ Hasapi 3D model integration and adjustments
+✔ Language filter (Batak Toba/English/Indonesian) implemented
+
 
 Pending (Remaining 10%):
 □ Improve raycasting precision

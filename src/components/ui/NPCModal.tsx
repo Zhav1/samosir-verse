@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ShoppingBag, Send } from "lucide-react";
 import { useAppStore } from "@/store/useAppStore";
@@ -11,6 +11,9 @@ import Image from "next/image";
 import { toSuratBatak } from "@/lib/surat-batak";
 import { LocalizedText } from "./LocalizedText";
 import { useTranslation } from "@/hooks/useTranslation";
+import { Canvas } from "@react-three/fiber";
+import { OrbitControls } from "@react-three/drei";
+import Opung3D from "../canvas/Opung3D";
 
 type Emotion = "happy" | "mysterious" | "serious";
 
@@ -180,16 +183,65 @@ export function NPCModal() {
                                 <X className="w-5 h-5 text-white" />
                             </button>
 
-                            {/* Header */}
-                            <div className="flex items-center gap-4 mb-6 pt-2">
-                                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-amber-600 to-orange-700 flex items-center justify-center text-3xl shadow-lg ring-2 ring-amber-500/50">
-                                    👴🏽
-                                </div>
-                                <div>
-                                    <h2 className="text-2xl font-bold text-white">
+                            {/* 3D Model Section */}
+                            <div className="relative w-full h-[45vh] bg-gradient-to-b from-indigo-900/30 to-black/50 rounded-xl overflow-hidden border border-white/10 mb-6 shadow-2xl">
+                                <div className="absolute inset-0 bg-[url('/patterns/batak-pattern.png')] opacity-10 mix-blend-overlay" />
+
+                                <Canvas
+                                    camera={{ position: [0, 1, 5], fov: 50 }}
+                                    gl={{
+                                        alpha: true,
+                                        antialias: true,
+                                        powerPreference: "high-performance",
+                                        preserveDrawingBuffer: true
+                                    }}
+                                    frameloop="demand"
+                                    dpr={[1, 2]}
+                                >
+                                    {/* Main ambient light */}
+                                    <ambientLight intensity={1.2} />
+
+                                    {/* Key light - main illumination from front-top */}
+                                    <directionalLight
+                                        position={[5, 8, 5]}
+                                        intensity={1.5}
+                                        castShadow
+                                    />
+
+                                    {/* Fill light - soften shadows from the side */}
+                                    <pointLight
+                                        position={[-5, 3, 5]}
+                                        intensity={0.8}
+                                        color="#fff5e1"
+                                    />
+
+                                    {/* Rim light - create depth from behind */}
+                                    <spotLight
+                                        position={[0, 5, -8]}
+                                        intensity={0.6}
+                                        angle={0.5}
+                                        penumbra={0.5}
+                                    />
+
+                                    <Suspense fallback={null}>
+                                        <Opung3D />
+                                    </Suspense>
+
+                                    <OrbitControls
+                                        enableZoom={false}
+                                        enablePan={false}
+                                        minPolarAngle={Math.PI / 2.5}
+                                        maxPolarAngle={Math.PI / 1.8}
+                                        autoRotate={false}
+                                    />
+                                </Canvas>
+
+                                {/* Name Overlay */}
+                                <div className="absolute bottom-0 left-0 w-full p-4 bg-gradient-to-t from-black via-black/80 to-transparent">
+                                    <h2 className="text-3xl font-bold text-white mb-1">
                                         <LocalizedText text={t('npc.opung')} />
                                     </h2>
-                                    <p className="text-white/70 text-sm">
+                                    <p className="text-amber-400 text-sm font-medium">
                                         <LocalizedText text={t('npc.role')} />
                                     </p>
                                 </div>

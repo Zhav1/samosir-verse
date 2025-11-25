@@ -115,7 +115,7 @@ export function SkyIsland() {
 
             {/* Overlay Text */}
             {!selectedLandmark3D && (
-                <div className="absolute inset-0 pointer-events-none flex flex-col items-center justify-center z-10">
+                <div className="absolute inset-0 pointer-events-none flex flex-col items-center justify-center z-40">
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}

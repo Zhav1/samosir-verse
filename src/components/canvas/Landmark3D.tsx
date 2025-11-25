@@ -108,6 +108,7 @@ export function Landmark3D({ id, position, nodeId, title, category, landmark }: 
                         userSelect: 'none',
                         zIndex: 10, // Ensure it's above other elements
                     }}
+                    zIndexRange={[20, 0]} // Keep z-index low so it doesn't overlap UI (z-40)
                 >
                     <div className={`
                         px-3 py-1.5 rounded-lg text-sm whitespace-nowrap backdrop-blur-sm transition-all duration-300
