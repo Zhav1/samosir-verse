@@ -1,7 +1,7 @@
-import { Suspense, useEffect, useState, useMemo } from 'react';
-import { Canvas } from '@react-three/fiber';
+import { Suspense, useEffect, useState, useMemo, useRef } from 'react';
+import { Canvas, useThree, useFrame } from '@react-three/fiber';
 import { OrbitControls, useVideoTexture, Html, DeviceOrientationControls } from '@react-three/drei';
-import { X, Volume2, VolumeX, Smartphone, MousePointer2 } from 'lucide-react';
+import { X, Volume2, VolumeX, Smartphone } from 'lucide-react';
 import { useAppStore } from '@/store/useAppStore';
 import * as THREE from 'three';
 
@@ -72,10 +72,89 @@ function Loader() {
   );
 }
 
+// Custom FOV Zoom Handler (Desktop Wheel + Mobile Pinch) with Smooth Damping
+function ZoomHandler() {
+  const { camera, gl } = useThree();
+  const targetFov = useRef<number>(75); // Initial FOV target
+  const initialPinchDistance = useRef<number>(0);
+
+  // Smooth Animation Loop (Lerp to target FOV)
+  useFrame(() => {
+    const cam = camera as THREE.PerspectiveCamera;
+    const smoothing = 0.1; // Lower = smoother/slower, Higher = snappier
+
+    // Only update if there's a meaningful difference
+    if (Math.abs(cam.fov - targetFov.current) > 0.1) {
+      cam.fov = THREE.MathUtils.lerp(cam.fov, targetFov.current, smoothing);
+      cam.updateProjectionMatrix();
+    }
+  });
+
+  useEffect(() => {
+    const canvas = gl.domElement;
+
+    // Desktop: Mouse Wheel Handler (Updates Target FOV)
+    const handleWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      const delta = e.deltaY * 0.03; // Reduced sensitivity for smoother feel
+      targetFov.current = THREE.MathUtils.clamp(targetFov.current + delta, 30, 100);
+    };
+
+    // Mobile: Pinch Gesture Handler (Updates Target FOV)
+    const handleTouchStart = (e: TouchEvent) => {
+      if (e.touches.length === 2) {
+        const touch1 = e.touches[0];
+        const touch2 = e.touches[1];
+        initialPinchDistance.current = Math.hypot(
+          touch2.pageX - touch1.pageX,
+          touch2.pageY - touch1.pageY
+        );
+      }
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (e.touches.length === 2 && initialPinchDistance.current > 0) {
+        e.preventDefault();
+        const touch1 = e.touches[0];
+        const touch2 = e.touches[1];
+        const currentDistance = Math.hypot(
+          touch2.pageX - touch1.pageX,
+          touch2.pageY - touch1.pageY
+        );
+
+        const delta = (initialPinchDistance.current - currentDistance) * 0.08; // Reduced for smoothness
+        targetFov.current = THREE.MathUtils.clamp(targetFov.current + delta, 30, 100);
+
+        initialPinchDistance.current = currentDistance; // Update for next move
+      }
+    };
+
+    const handleTouchEnd = () => {
+      initialPinchDistance.current = 0;
+    };
+
+    // Attach listeners
+    canvas.addEventListener('wheel', handleWheel, { passive: false });
+    canvas.addEventListener('touchstart', handleTouchStart, { passive: true });
+    canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
+    canvas.addEventListener('touchend', handleTouchEnd, { passive: true });
+
+    // Cleanup
+    return () => {
+      canvas.removeEventListener('wheel', handleWheel);
+      canvas.removeEventListener('touchstart', handleTouchStart);
+      canvas.removeEventListener('touchmove', handleTouchMove);
+      canvas.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, [camera, gl]);
+
+  return null; // This is a logic-only component
+}
+
 export function TortorVideoModal() {
   const { isTortorModalOpen, setTortorModalOpen } = useAppStore();
   const [isMuted, setIsMuted] = useState(true);
-  const [isGyroEnabled, setIsGyroEnabled] = useState(false); // Default to manual (off)
+  const [isGyroEnabled, setIsGyroEnabled] = useState(false);
 
   // Platform Detection
   const isMobile = useMemo(() => {
@@ -101,16 +180,19 @@ export function TortorVideoModal() {
             <VideoSphere isMuted={isMuted} />
 
             {/* Adaptive Controls */}
-            {/* 1. OrbitControls: Enabled for everyone (Drag to look, Scroll/Pinch to Zoom) */}
+            {/* 1. OrbitControls: For rotation only (zoom disabled - using custom FOV zoom) */}
             <OrbitControls
-              enableZoom={true}
-              enablePan={false}
-              rotateSpeed={-0.5} // Negative for "drag scene" feel
-              minDistance={1}
-              maxDistance={100}
+              enableZoom={false}      // DISABLED - using custom FOV zoom
+              enablePan={false}       // Keep camera centered
+              enableDamping={true}    // Smooth stop
+              dampingFactor={0.05}
+              rotateSpeed={-0.5}      // Drag direction fix
             />
 
-            {/* 2. DeviceOrientationControls: ONLY for Mobile (Gyroscope) - Controlled by Toggle */}
+            {/* 2. Custom FOV Zoom Handler (Wheel + Pinch) */}
+            <ZoomHandler />
+
+            {/* 3. DeviceOrientationControls: ONLY when Gyro is manually enabled */}
             {isMobile && isGyroEnabled && <DeviceOrientationControls />}
           </Suspense>
         </Canvas>
@@ -118,21 +200,24 @@ export function TortorVideoModal() {
 
       {/* Controls Overlay */}
       <div className="absolute top-6 right-6 z-[80] flex gap-4">
-        {/* Gyroscope Toggle (Mobile Only) */}
+        {/* Gyro Toggle (Mobile Only) */}
         {isMobile && (
           <button
             onClick={() => setIsGyroEnabled(!isGyroEnabled)}
-            className={`p-3 rounded-full text-white transition-colors backdrop-blur-md border border-white/20 ${isGyroEnabled ? 'bg-amber-500/80 hover:bg-amber-600/80' : 'bg-black/50 hover:bg-black/70'
+            className={`p-3 rounded-full transition-colors backdrop-blur-md border pointer-events-auto ${isGyroEnabled
+                ? 'bg-white text-black border-white hover:bg-gray-200'
+                : 'bg-black/50 text-white border-white/20 hover:bg-black/70'
               }`}
+            title={isGyroEnabled ? "Disable Gyroscope" : "Enable Gyroscope"}
           >
-            <Smartphone size={24} className={isGyroEnabled ? 'animate-pulse' : ''} />
+            <Smartphone size={24} />
           </button>
         )}
 
         {/* Mute Toggle */}
         <button
           onClick={() => setIsMuted(!isMuted)}
-          className="p-3 bg-black/50 hover:bg-black/70 rounded-full text-white transition-colors backdrop-blur-md border border-white/20"
+          className="p-3 bg-black/50 hover:bg-black/70 rounded-full text-white transition-colors backdrop-blur-md border border-white/20 pointer-events-auto"
         >
           {isMuted ? <VolumeX size={24} /> : <Volume2 size={24} />}
         </button>
@@ -140,22 +225,20 @@ export function TortorVideoModal() {
         {/* Close Button */}
         <button
           onClick={() => setTortorModalOpen(false)}
-          className="p-3 bg-black/50 hover:bg-black/70 rounded-full text-white transition-colors backdrop-blur-md border border-white/20"
+          className="p-3 bg-black/50 hover:bg-black/70 rounded-full text-white transition-colors backdrop-blur-md border border-white/20 pointer-events-auto"
         >
           <X size={24} />
         </button>
       </div>
 
       {/* Overlay Title */}
-      <div className="absolute bottom-10 left-0 right-0 text-center pointer-events-none z-[80] px-4">
-        <h2 className="text-3xl font-bold text-white drop-shadow-lg mb-2">Tor-Tor Dance</h2>
-        <div className="inline-block bg-black/60 backdrop-blur-md px-4 py-2 rounded-full border border-white/10">
-          <p className="text-white font-medium text-sm">
-            {isMobile
-              ? (isGyroEnabled ? "📱 Move phone to look around" : "👆 Drag to look around • Enable Gyro for immersion")
-              : "🖱️ Drag to look • Scroll to zoom"}
-          </p>
-        </div>
+      <div className="absolute bottom-10 left-0 right-0 text-center pointer-events-none z-[80]">
+        <h2 className="text-2xl font-bold text-white drop-shadow-lg">Tor-Tor Dance</h2>
+        <p className="text-white/80 text-sm">
+          {isMobile
+            ? "Experience in 360° • Move phone or drag to look • Pinch to zoom"
+            : "Experience in 360° • Drag to look • Scroll to zoom"}
+        </p>
       </div>
     </div>
   );
