@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, Volume2, VolumeX } from 'lucide-react';
 import { useAppStore } from '@/store/useAppStore';
 import { CATEGORY_CONFIG, CATEGORIES, Category } from '@/lib/constants';
 import { LanguageSwitcher } from './LanguageSwitcher';
@@ -11,7 +11,7 @@ import { useTranslation } from '@/hooks/useTranslation';
 
 export default function FilterSidebar() {
     const [isMobileOpen, setIsMobileOpen] = useState(false);
-    const { activeFilters, toggleFilter } = useAppStore();
+    const { activeFilters, toggleFilter, volume, setVolume, isAudioPlaying, setIsAudioPlaying } = useAppStore();
     const { t } = useTranslation();
 
     const handleFilterToggle = (category: Category) => {
@@ -123,9 +123,31 @@ export default function FilterSidebar() {
                 })}
             </div>
 
-            {/* Active count */}
             <div className="text-center text-xs text-white/40 pt-2 border-t border-white/10">
                 {activeFilters.length} of {CATEGORIES.length} active
+            </div>
+
+            {/* Volume Control */}
+            <div className="pt-4 border-t border-white/10">
+                <div className="flex items-center gap-3 mb-2">
+                    <button
+                        onClick={() => setIsAudioPlaying(!isAudioPlaying)}
+                        className="text-white/80 hover:text-white transition-colors"
+                    >
+                        {isAudioPlaying && volume > 0 ? <Volume2 size={20} /> : <VolumeX size={20} />}
+                    </button>
+                    <input
+                        type="range"
+                        min="0"
+                        max="100"
+                        value={volume}
+                        onChange={(e) => setVolume(Number(e.target.value))}
+                        className="w-full h-1 bg-white/20 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:rounded-full"
+                    />
+                </div>
+                <div className="text-xs text-white/40 text-center">
+                    Ambience
+                </div>
             </div>
         </div>
     );

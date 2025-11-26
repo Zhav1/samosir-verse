@@ -18,6 +18,8 @@ export const metadata: Metadata = {
   description: "Immersive Cultural Heritage Platform of Samosir Island",
 };
 
+import { BackgroundMusic } from "@/components/ui/BackgroundMusic";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -28,6 +30,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <BackgroundMusic />
         {children}
       </body>
     </html>

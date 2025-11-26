@@ -454,6 +454,20 @@ Pending (Remaining 10%):
 □ Mobile: remove hover states
 □ Performance tuning
 
+11. Recent Updates (Mobile UX & Audio - 2025-11-26)
+- **Audio System**:
+    - Global background music with crossfade (`useAudio.ts`).
+    - Visible "Tap to Enable Audio" button for browser autoplay policies.
+    - Volume control in Sidebar and floating HUD.
+    - Fixed `useAudio` to ensure tracks load even if autoplay is blocked.
+- **Mobile UX**:
+    - **NPC Button**: Moved to top-right (offset) to avoid corner overlaps. Auto-hides when Detail Modal is open.
+    - **Visual Cues**: "Tap to view" indicator for Hasapi (always visible on mobile).
+    - **Tor-Tor Video**: Manual Gyroscope toggle (default OFF). Improved text visibility with dark backdrop.
+- **Gyroscope Config**:
+    - Panorama: `SceneContainer.tsx` (GyroscopePlugin).
+    - Tor-Tor: `TortorVideoModal.tsx` (DeviceOrientationControls).
+
 11. Critical Implementation Notes (Do Not Delete
 
 React 18 Strict Mode calls effects twice — must gate initialization with isMounted

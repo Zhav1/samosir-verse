@@ -177,7 +177,7 @@ export function NPCModal() {
                             {/* Close button */}
                             <button
                                 onClick={() => setNPCModalOpen(false)}
-                                className="absolute top-4 right-4 p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors z-10"
+                                className="absolute top-6 right-6 p-2 rounded-full bg-black/50 hover:bg-black/70 backdrop-blur-md border border-white/10 transition-colors z-50"
                                 aria-label="Close sidebar"
                             >
                                 <X className="w-5 h-5 text-white" />

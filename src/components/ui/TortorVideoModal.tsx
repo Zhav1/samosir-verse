@@ -1,7 +1,7 @@
 import { Suspense, useEffect, useState, useMemo } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, useVideoTexture, Html, DeviceOrientationControls } from '@react-three/drei';
-import { X, Volume2, VolumeX } from 'lucide-react';
+import { X, Volume2, VolumeX, Smartphone, MousePointer2 } from 'lucide-react';
 import { useAppStore } from '@/store/useAppStore';
 import * as THREE from 'three';
 
@@ -24,10 +24,10 @@ function VideoSphere({ isMuted }: { isMuted: boolean }) {
       texture.minFilter = THREE.LinearFilter;
       texture.magFilter = THREE.LinearFilter;
       texture.format = THREE.RGBAFormat; // Ensure correct format
-      
+
       // 2. Color Correction (Fix washed-out colors)
       texture.colorSpace = THREE.SRGBColorSpace;
-      
+
       texture.needsUpdate = true;
     }
   }, [texture]);
@@ -75,6 +75,7 @@ function Loader() {
 export function TortorVideoModal() {
   const { isTortorModalOpen, setTortorModalOpen } = useAppStore();
   const [isMuted, setIsMuted] = useState(true);
+  const [isGyroEnabled, setIsGyroEnabled] = useState(false); // Default to manual (off)
 
   // Platform Detection
   const isMobile = useMemo(() => {
@@ -98,25 +99,36 @@ export function TortorVideoModal() {
         <Canvas camera={{ position: [0, 0, 0.1], fov: 75 }}>
           <Suspense fallback={<Loader />}>
             <VideoSphere isMuted={isMuted} />
-            
+
             {/* Adaptive Controls */}
             {/* 1. OrbitControls: Enabled for everyone (Drag to look, Scroll/Pinch to Zoom) */}
-            <OrbitControls 
-              enableZoom={true} 
-              enablePan={false} 
+            <OrbitControls
+              enableZoom={true}
+              enablePan={false}
               rotateSpeed={-0.5} // Negative for "drag scene" feel
               minDistance={1}
               maxDistance={100}
             />
-            
-            {/* 2. DeviceOrientationControls: ONLY for Mobile (Gyroscope) */}
-            {isMobile && <DeviceOrientationControls />}
+
+            {/* 2. DeviceOrientationControls: ONLY for Mobile (Gyroscope) - Controlled by Toggle */}
+            {isMobile && isGyroEnabled && <DeviceOrientationControls />}
           </Suspense>
         </Canvas>
       </div>
 
       {/* Controls Overlay */}
       <div className="absolute top-6 right-6 z-[80] flex gap-4">
+        {/* Gyroscope Toggle (Mobile Only) */}
+        {isMobile && (
+          <button
+            onClick={() => setIsGyroEnabled(!isGyroEnabled)}
+            className={`p-3 rounded-full text-white transition-colors backdrop-blur-md border border-white/20 ${isGyroEnabled ? 'bg-amber-500/80 hover:bg-amber-600/80' : 'bg-black/50 hover:bg-black/70'
+              }`}
+          >
+            <Smartphone size={24} className={isGyroEnabled ? 'animate-pulse' : ''} />
+          </button>
+        )}
+
         {/* Mute Toggle */}
         <button
           onClick={() => setIsMuted(!isMuted)}
@@ -135,13 +147,15 @@ export function TortorVideoModal() {
       </div>
 
       {/* Overlay Title */}
-      <div className="absolute bottom-10 left-0 right-0 text-center pointer-events-none z-[80]">
-        <h2 className="text-2xl font-bold text-white drop-shadow-lg">Tor-Tor Dance</h2>
-        <p className="text-white/80 text-sm">
-          {isMobile 
-            ? "Experience in 360° • Move phone or drag to look • Pinch to zoom" 
-            : "Experience in 360° • Drag to look • Scroll to zoom"}
-        </p>
+      <div className="absolute bottom-10 left-0 right-0 text-center pointer-events-none z-[80] px-4">
+        <h2 className="text-3xl font-bold text-white drop-shadow-lg mb-2">Tor-Tor Dance</h2>
+        <div className="inline-block bg-black/60 backdrop-blur-md px-4 py-2 rounded-full border border-white/10">
+          <p className="text-white font-medium text-sm">
+            {isMobile
+              ? (isGyroEnabled ? "📱 Move phone to look around" : "👆 Drag to look around • Enable Gyro for immersion")
+              : "🖱️ Drag to look • Scroll to zoom"}
+          </p>
+        </div>
       </div>
     </div>
   );

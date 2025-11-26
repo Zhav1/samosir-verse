@@ -69,10 +69,14 @@ export function useAudio(
         audioRef1.current.loop = loop;
         audioRef2.current.loop = loop;
 
-        // Start first track if autoplay
-        if (autoplay && tracks.length > 0) {
+        // Always load the first track
+        if (tracks.length > 0) {
             loadTrack(tracks[0].id, audioRef1.current);
             setCurrentTrack(tracks[0].id);
+        }
+
+        // Start first track if autoplay
+        if (autoplay && tracks.length > 0) {
             play();
         }
 

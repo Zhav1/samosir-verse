@@ -15,6 +15,7 @@ import { MessageCircle } from "lucide-react";
 import { ProductDetailModal } from "@/components/ui/ProductDetailModal";
 import { getProductById } from "@/lib/mockProducts";
 import { TortorVideoModal } from "@/components/ui/TortorVideoModal";
+import { VolumeControl } from "@/components/ui/VolumeControl";
 
 function HomeContent() {
   const {
@@ -70,11 +71,11 @@ function HomeContent() {
                 <PanoramaViewer />
               </div>
 
-              {/* Floating Chat Button - Only visible when NPC Modal is closed */}
-              {!isNPCModalOpen && (
+              {/* Floating Chat Button - Only visible when NPC Modal is closed AND no item detail is open */}
+              {!isNPCModalOpen && !itemDetailId && (
                 <button
                   onClick={() => setNPCModalOpen(true)}
-                  className="fixed top-20 md:top-4 right-4 z-[60] p-3 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 shadow-lg transition-all duration-300 hover:scale-110 group"
+                  className="fixed top-5 right-5 z-[60] p-3 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 shadow-lg transition-all duration-300 hover:scale-110 group"
                   aria-label="Open Chat"
                 >
                   <MessageCircle className="w-6 h-6 text-white group-hover:text-amber-400 transition-colors" />
@@ -88,6 +89,11 @@ function HomeContent() {
             {/* Return to Sky View button */}
             <div className="absolute top-0 left-0 w-full z-50">
               <ReturnToSkyButton />
+            </div>
+
+            {/* Volume Control */}
+            <div className="fixed bottom-6 right-6 z-50 ">
+              <VolumeControl />
             </div>
           </ErrorBoundary>
         </main>
@@ -102,11 +108,11 @@ function HomeContent() {
                 <StaticImageViewer />
               </div>
 
-              {/* Floating Chat Button - Only visible when NPC Modal is closed */}
-              {!isNPCModalOpen && (
+              {/* Floating Chat Button - Only visible when NPC Modal is closed AND no item detail is open */}
+              {!isNPCModalOpen && !itemDetailId && (
                 <button
                   onClick={() => setNPCModalOpen(true)}
-                  className="fixed top-20 md:top-4 right-4 z-[60] p-3 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 shadow-lg transition-all duration-300 hover:scale-110 group"
+                  className="fixed top-4 right-16 md:right-4 z-[60] p-3 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 shadow-lg transition-all duration-300 hover:scale-110 group"
                   aria-label="Open Chat"
                 >
                   <MessageCircle className="w-6 h-6 text-white group-hover:text-amber-400 transition-colors" />
@@ -120,6 +126,11 @@ function HomeContent() {
             {/* Return to Sky View button */}
             <div className="absolute top-0 left-0 w-full z-50">
               <ReturnToSkyButton />
+            </div>
+
+            {/* Volume Control */}
+            <div className="fixed bottom-6 right-6 z-50">
+              <VolumeControl />
             </div>
           </ErrorBoundary>
         </main>

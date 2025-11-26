@@ -8,7 +8,8 @@ import '@photo-sphere-viewer/core/index.css';
 import '@photo-sphere-viewer/virtual-tour-plugin/index.css';
 import '@photo-sphere-viewer/markers-plugin/index.css';
 import { GyroscopePlugin } from '@photo-sphere-viewer/gyroscope-plugin';
-import { Compass } from 'lucide-react';
+import { Compass as CompassIcon } from 'lucide-react';
+import { Compass } from '@/components/ui/Compass';
 import { supabase } from '@/lib/supabase';
 import { Node } from '@/types';
 import MarkerManager from './MarkerManager';
@@ -212,27 +213,32 @@ export default function SceneContainer({ initialNodeId }: SceneContainerProps) {
             <div ref={viewerRef} className="w-full h-full absolute inset-0" />
             <MarkerManager viewer={viewerInstanceRef.current} />
 
+            {/* Compass HUD */}
+            <Compass viewer={viewerInstanceRef.current} />
+
             {/* Gyroscope Toggle Button - Mobile Only */}
             <button
                 onClick={toggleGyroscope}
-                className={`absolute top-4 right-4 z-10 p-3 rounded-full backdrop-blur-md transition-all duration-300 ${isGyroEnabled
-                        ? 'bg-blue-500/80 text-white shadow-[0_0_15px_rgba(59,130,246,0.5)]'
-                        : 'bg-black/30 text-white/70 hover:bg-black/50'
+                className={`absolute top-[1.5rem] right-20 z-10 p-3 rounded-full backdrop-blur-md transition-all duration-300 ${isGyroEnabled
+                    ? 'bg-blue-500/80 text-white shadow-[0_0_15px_rgba(59,130,246,0.5)]'
+                    : 'bg-black/30 text-white/70 hover:bg-black/50'
                     } md:hidden`}
                 aria-label="Toggle Gyroscope"
             >
-                <Compass className={`w-6 h-6 ${isGyroEnabled ? 'animate-pulse' : ''}`} />
+                <CompassIcon className={`w-6 h-6 ${isGyroEnabled ? 'animate-pulse' : ''}`} />
             </button>
 
-            {isLoading && (
-                <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/80 text-white">
-                    <div className="flex flex-col items-center gap-4">
-                        <div className="w-8 h-8 border-4 border-white/30 border-t-white rounded-full animate-spin" />
-                        <p className="text-sm font-medium tracking-wider animate-pulse">LOADING PANORAMA...</p>
-                        <p className="text-xs text-gray-400">Node: {initialNodeId}</p>
+            {
+                isLoading && (
+                    <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/80 text-white">
+                        <div className="flex flex-col items-center gap-4">
+                            <div className="w-8 h-8 border-4 border-white/30 border-t-white rounded-full animate-spin" />
+                            <p className="text-sm font-medium tracking-wider animate-pulse">LOADING PANORAMA...</p>
+                            <p className="text-xs text-gray-400">Node: {initialNodeId}</p>
+                        </div>
                     </div>
-                </div>
-            )}
+                )
+            }
         </>
     );
 }

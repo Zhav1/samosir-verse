@@ -57,6 +57,12 @@ interface AppState {
     // Tor-Tor Video Modal State
     isTortorModalOpen: boolean;
     setTortorModalOpen: (isOpen: boolean) => void;
+
+    // Audio System
+    isAudioPlaying: boolean;
+    volume: number;
+    setIsAudioPlaying: (isPlaying: boolean) => void;
+    setVolume: (volume: number) => void;
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -106,4 +112,10 @@ export const useAppStore = create<AppState>((set) => ({
     // Tor-Tor Video Modal State
     isTortorModalOpen: false,
     setTortorModalOpen: (isOpen: boolean) => set({ isTortorModalOpen: isOpen }),
+
+    // Audio System
+    isAudioPlaying: false,
+    volume: 50,
+    setIsAudioPlaying: (isPlaying) => set({ isAudioPlaying: isPlaying }),
+    setVolume: (volume) => set({ volume }),
 }));

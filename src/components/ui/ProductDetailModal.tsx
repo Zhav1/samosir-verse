@@ -56,17 +56,27 @@ export function ProductDetailModal({
                         {/* Close Button */}
                         <button
                             onClick={onClose}
-                            className="absolute top-4 right-4 z-10 p-2 rounded-full bg-black/50 hover:bg-black/70 transition-colors"
+                            className="absolute top-4 right-4 z-20 p-2 rounded-full bg-black/50 hover:bg-black/70 transition-colors border border-white/10"
                         >
                             <X className="w-5 h-5 text-white" />
                         </button>
 
                         {/* Product Image */}
-                        <div className="relative h-48 bg-gradient-to-br from-purple-900/20 to-orange-900/20 flex items-center justify-center overflow-hidden">
+                        <div className="relative h-48 bg-gradient-to-br from-purple-900/20 to-orange-900/20 flex items-center justify-center overflow-hidden group">
                             {/* Placeholder gradient background */}
                             <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-orange-500/10" />
-                            <div className="relative text-6xl">
+                            <div className="relative text-6xl group-hover:scale-110 transition-transform duration-500">
                                 {product.category === 'food' ? '🍽️' : '🎵'}
+                            </div>
+
+                            {/* Visual Cue - Always visible on mobile, hidden on desktop */}
+                            <div className="absolute bottom-4 right-4 md:hidden z-30">
+                                <div className="relative">
+                                    <div className="absolute inset-0 bg-white/30 rounded-full animate-ping" />
+                                    <div className="relative bg-black/60 backdrop-blur-md px-4 py-2 rounded-full border border-white/20 text-xs font-medium text-white shadow-lg flex items-center gap-2">
+                                        <span className="animate-pulse">👆</span> Tap to view
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
