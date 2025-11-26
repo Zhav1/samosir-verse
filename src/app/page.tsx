@@ -14,6 +14,7 @@ import { LocalizedText } from "@/components/ui/LocalizedText";
 import { MessageCircle } from "lucide-react";
 import { ProductDetailModal } from "@/components/ui/ProductDetailModal";
 import { getProductById } from "@/lib/mockProducts";
+import { TortorVideoModal } from "@/components/ui/TortorVideoModal";
 
 function HomeContent() {
   const {
@@ -24,7 +25,8 @@ function HomeContent() {
     itemDetailId,
     setItemDetailId,
     isNPCModalOpen,
-    setNPCModalOpen
+    setNPCModalOpen,
+    isTortorModalOpen
   } = useAppStore();
 
   const searchParams = useSearchParams();
@@ -129,6 +131,9 @@ function HomeContent() {
         isOpen={!!itemDetailId && itemDetailId !== 'hasapi'}
         onClose={() => setItemDetailId(null)}
       />
+
+      {/* Tor-Tor Video Modal - Conditionally rendered to prevent WebGL context loss */}
+      {isTortorModalOpen && <TortorVideoModal />}
     </>
   );
 }
