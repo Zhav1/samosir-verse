@@ -219,7 +219,7 @@ export default function SceneContainer({ initialNodeId }: SceneContainerProps) {
             {/* Gyroscope Toggle Button - Mobile Only */}
             <button
                 onClick={toggleGyroscope}
-                className={`absolute top-[1.5rem] right-20 z-10 p-3 rounded-full backdrop-blur-md transition-all duration-300 ${isGyroEnabled
+                className={`fixed top-[1.5rem] right-20 z-10 p-3 rounded-full backdrop-blur-md transition-all duration-300 ${isGyroEnabled
                     ? 'bg-blue-500/80 text-white shadow-[0_0_15px_rgba(59,130,246,0.5)]'
                     : 'bg-black/30 text-white/70 hover:bg-black/50'
                     } md:hidden`}
