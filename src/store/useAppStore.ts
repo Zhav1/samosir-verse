@@ -53,6 +53,10 @@ interface AppState {
     // Item Detail Modal State
     itemDetailId: string | null;
     setItemDetailId: (id: string | null) => void;
+
+    // Tor-Tor Video Modal State
+    isTortorModalOpen: boolean;
+    setTortorModalOpen: (isOpen: boolean) => void;
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -98,4 +102,8 @@ export const useAppStore = create<AppState>((set) => ({
     // Item Detail Modal State
     itemDetailId: null,
     setItemDetailId: (id: string | null) => set({ itemDetailId: id }),
+
+    // Tor-Tor Video Modal State
+    isTortorModalOpen: false,
+    setTortorModalOpen: (isOpen: boolean) => set({ isTortorModalOpen: isOpen }),
 }));
