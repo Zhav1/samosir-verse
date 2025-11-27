@@ -5,7 +5,7 @@ We are building Samosir 360, an immersive cultural-heritage platform that blends
 • A stylized 3D low-poly island (React-Three-Fiber)
 • A custom 360° panorama engine (PhotoSphereViewer)
 • A Hub & Spoke content model (25 glowmarks → ~5 360 nodes)
-• An AI “Opung” storyteller (OpenAI API)
+• An AI “Opung” storyteller (Groq SDK / Llama 3.1)
 • A Marketplace extension for buyable items
 • A fully custom navigation pipeline (no Google Maps)
 
@@ -216,7 +216,7 @@ src/
       Compass.tsx
   lib/
     supabase.ts
-    ai-client.ts
+
 
 R3F cannot use <primitive object={new THREE.ConeGeometry}>
 name	text	display name
@@ -411,7 +411,7 @@ src/
       Compass.tsx
   lib/
     supabase.ts
-    ai-client.ts
+
 
 R3F cannot use <primitive object={new THREE.ConeGeometry}>
 
