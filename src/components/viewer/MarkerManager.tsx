@@ -178,6 +178,7 @@ export default function MarkerManager({ viewer }: MarkerManagerProps) {
         });
 
         // Handle marker clicks
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const handleMarkerClick = (e: any) => {
             const markerId = e.marker.id;
             const landmark = e.marker.data;
@@ -198,6 +199,7 @@ export default function MarkerManager({ viewer }: MarkerManagerProps) {
         return () => {
             markersPlugin.removeEventListener('select-marker', handleMarkerClick);
         };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [viewer, landmarks, activeFilters, setCurrentLandmark, setNPCModalOpen, setTortorModalOpen]);
 
     // Handle custom button clicks for Hasapi/Tor-Tor (Bypassing Viewer Events)

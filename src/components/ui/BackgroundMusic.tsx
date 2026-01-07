@@ -3,8 +3,7 @@
 import { useEffect } from 'react';
 import { useAudio } from '@/hooks/useAudio';
 import { useAppStore } from '@/store/useAppStore';
-import { Volume2, VolumeX } from 'lucide-react';
-import { useState } from 'react';
+import { VolumeX } from 'lucide-react';
 
 export function BackgroundMusic() {
     const { isAudioPlaying, volume, setIsAudioPlaying } = useAppStore();
@@ -57,6 +56,7 @@ export function BackgroundMusic() {
             window.removeEventListener('touchstart', handleInteraction);
             window.removeEventListener('keydown', handleInteraction);
         };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []); // Run once on mount
 
     // Sync volume from store to audio

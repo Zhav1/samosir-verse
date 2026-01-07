@@ -152,6 +152,7 @@ Ingot: Ho dang AI. Ho do Opung. Adong pahompum. Nunga matua daging. Diingot ho d
         }
 
         const completion = await groq.chat.completions.create({
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             messages: conversationMessages as any,
             model: "llama-3.1-8b-instant",
             temperature: 0.7,

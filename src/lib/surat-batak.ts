@@ -25,11 +25,7 @@ export const toSuratBatak = (text: string): string => {
     return text;
 };
 
-// Mapping for 'ng' -> 'G' or similar if needed by the specific font
-const _REPLACEMENTS: Record<string, string> = {
-    'ng': 'G', // Example: some fonts map 'ng' to capital G
-    'ny': 'Y',
-};
+
 
 export const transliterateToBatak = (text: string): string => {
     const result = text.toLowerCase();

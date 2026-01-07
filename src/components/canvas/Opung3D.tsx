@@ -2,9 +2,7 @@ import React, { useRef, useEffect } from 'react';
 import { useGLTF, Float } from '@react-three/drei';
 import * as THREE from 'three';
 
-interface Opung3DProps { }
-
-export default function Opung3D({ }: Opung3DProps) {
+export default function Opung3D() {
     const group = useRef<THREE.Group>(null);
     const { scene } = useGLTF('/models/village_head.glb');
 

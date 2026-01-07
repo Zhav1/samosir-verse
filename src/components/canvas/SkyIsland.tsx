@@ -9,11 +9,10 @@ import { useCameraAnimation } from "@/hooks/useCameraAnimation";
 import { useAppStore } from "@/store/useAppStore";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import FilterSidebar from "@/components/ui/FilterSidebar";
 import { useTranslation } from "@/hooks/useTranslation";
 import { LocalizedText } from "@/components/ui/LocalizedText";
-import { useRouter } from "next/navigation";
 
 export function SkyIsland() {
     const selectedLandmark3D = useAppStore((state) => state.selectedLandmark3D);
@@ -24,7 +23,6 @@ export function SkyIsland() {
     const setNPCModalOpen = useAppStore((state) => state.setNPCModalOpen);
     const { t } = useTranslation();
     const [isLoading, setIsLoading] = useState(false);
-    const router = useRouter();
 
     const handleEnter360View = () => {
         if (!selectedLandmark3D) return;

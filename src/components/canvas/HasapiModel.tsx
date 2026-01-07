@@ -9,7 +9,7 @@ export default function HasapiModel() {
   const meshRef = useRef<THREE.Group>(null);
 
   // Optional: Slow rotation animation
-  useFrame((state) => {
+  useFrame(() => {
     if (meshRef.current) {
       meshRef.current.rotation.y += 0.005;
     }
@@ -18,9 +18,9 @@ export default function HasapiModel() {
   return (
     <Stage environment="city" intensity={0.6} adjustCamera={1.2}>
       <Float speed={2} rotationIntensity={0.5} floatIntensity={0.5}>
-        <primitive 
-          ref={meshRef} 
-          object={scene} 
+        <primitive
+          ref={meshRef}
+          object={scene}
           scale={1.5} // Sesuaikan scale agar pas di layar
         />
       </Float>
