@@ -31,6 +31,7 @@ export function Compass({ viewer, autoHideDelay = 3000 }: CompassProps) {
     useEffect(() => {
         if (!viewer) return;
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const handlePositionUpdate = (e: any) => {
             setYaw(e.position.yaw);
             setPitch(e.position.pitch);

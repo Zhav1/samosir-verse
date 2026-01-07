@@ -1,18 +1,13 @@
 import { useAppStore } from '@/store/useAppStore';
 import { translations, Language } from '@/lib/translations';
 
-// Helper type to access nested keys
-type NestedKeyOf<ObjectType extends object> = {
-  [Key in keyof ObjectType & (string | number)]: ObjectType[Key] extends object
-    ? `${Key}` | `${Key}.${NestedKeyOf<ObjectType[Key]>}`
-    : `${Key}`;
-}[keyof ObjectType & (string | number)];
 
 export const useTranslation = () => {
   const { language } = useAppStore();
 
   const t = (key: string): string => {
     const keys = key.split('.');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let current: any = translations;
 
     for (const k of keys) {

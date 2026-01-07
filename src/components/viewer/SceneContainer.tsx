@@ -162,6 +162,7 @@ export default function SceneContainer({ initialNodeId }: SceneContainerProps) {
     const toggleGyroscope = async () => {
         if (!viewerInstanceRef.current) return;
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const gyroPlugin = viewerInstanceRef.current.getPlugin(GyroscopePlugin) as any;
         if (!gyroPlugin) return;
 
@@ -176,7 +177,9 @@ export default function SceneContainer({ initialNodeId }: SceneContainerProps) {
         } catch (err) {
             console.error('Failed to toggle gyroscope:', err);
             // On iOS 13+ we might need to request permission
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             if (typeof DeviceOrientationEvent !== 'undefined' && (DeviceOrientationEvent as any).requestPermission) {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 (DeviceOrientationEvent as any).requestPermission()
                     .then((response: string) => {
                         if (response === 'granted') {
