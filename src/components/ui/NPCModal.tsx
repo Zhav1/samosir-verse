@@ -60,6 +60,7 @@ export function NPCModal() {
                     activeFilters,
                     loreContext: currentLandmark.lore_context,
                     landmarkTitle: currentLandmark.title,
+                    category: currentLandmark.category,
                     language: useAppStore.getState().language,
                 }),
             });
@@ -126,6 +127,7 @@ export function NPCModal() {
                     activeFilters,
                     loreContext: currentLandmark?.lore_context,
                     landmarkTitle: currentLandmark?.title,
+                    category: currentLandmark?.category,
                     language: useAppStore.getState().language,
                     messages: newMessages, // Send full history
                 }),

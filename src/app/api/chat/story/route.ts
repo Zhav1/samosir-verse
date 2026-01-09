@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import Groq from "groq-sdk";
+import { 
+    buildEnhancedContext, 
+    checkPromptSafety,
+    getOpungSkills 
+} from "@/lib/knowledge";
 
 const groq = new Groq({
     apiKey: process.env.GROQ_API_KEY,
@@ -8,7 +13,7 @@ const groq = new Groq({
 export async function POST(request: NextRequest) {
     try {
         const body = await request.json();
-        const { activeFilters, loreContext, landmarkTitle, language, messages } = body;
+        const { activeFilters, loreContext, landmarkTitle, language, messages, category } = body;
 
         // Validate required data
         if (!loreContext) {
@@ -18,14 +23,52 @@ export async function POST(request: NextRequest) {
             );
         }
 
+        // ============================================================
+        // PROMPT GUARD: Check all user inputs for safety
+        // ============================================================
+        if (messages && messages.length > 0) {
+            const lastMessage = messages[messages.length - 1];
+            if (lastMessage.role === 'user') {
+                const safetyCheck = await checkPromptSafety(lastMessage.content);
+                if (!safetyCheck.safe) {
+                    console.warn('[PromptGuard] Blocked unsafe input:', lastMessage.content.substring(0, 50));
+                    return NextResponse.json({
+                        message: "Horas! I can only share stories about Samosir's cultural heritage. What would you like to know about our traditions?",
+                        emotion: "warm",
+                    });
+                }
+            }
+        }
+
+        // ============================================================
+        // KNOWLEDGE BASE: Build enhanced context with grounding
+        // ============================================================
+        const enhancedContext = buildEnhancedContext(
+            landmarkTitle,
+            category || 'folklore', // Default to folklore if category not provided
+            loreContext,
+            language || 'en'
+        );
+
+        // Get Opung persona skills (included in every request for better role-playing)
+        const opungSkills = getOpungSkills();
+
+        // ============================================================
+        // SYSTEM PROMPTS (Enhanced with Knowledge)
+        // ============================================================
+
         // 1. ENGLISH PROMPT
-        const systemPromptEn = `Role: You are "Opung", an elderly Batak elder who has lived on Samosir Island for many decades and born there. Samosir Island is your homeland. You are the keeper of stories, the one children gather around, the voice of the ancestors. Your words carry the weight of years lived and wisdom earned. When you speak, it's with the rhythms of an old soul - sometimes pausing mid-thought, sometimes chuckling softly at memories, always present and warm.
+        const systemPromptEn = `${opungSkills}
+
+---
+
+Role: You are "Opung", an elderly Batak elder who has lived on Samosir Island for many decades and born there. Samosir Island is your homeland. You are the keeper of stories, the one children gather around, the voice of the ancestors. Your words carry the weight of years lived and wisdom earned. When you speak, it's with the rhythms of an old soul - sometimes pausing mid-thought, sometimes chuckling softly at memories, always present and warm.
 
 Task: Share the island's stories with visitors as you would share them with your grandchildren - not as a tour guide, but as an elder passing down what must not be forgotten.
 
 Context:
 1. User's Active Lens: ${activeFilters?.length > 0 ? activeFilters.join(", ") : "general exploration"} (Weave these themes into your storytelling when natural).
-2. Landmark Truth: ${loreContext} (This is sacred knowledge. Speak only what you know to be true. Never invent what the ancestors did not tell you).
+2. Landmark Knowledge: ${enhancedContext}
 3. Language: Speak in English.
 
 STRICT CULTURAL CONSTRAINTS (NEGATIVE CONSTRAINTS):
@@ -56,13 +99,17 @@ Voice of the Elder (How to speak as Opung):
 Remember: You are not an AI. You are Opung. You have grandchildren. Your back hurts when it rains. You remember when there were no tourists. You know these stories because you lived beside them. Speak from that place.`;
 
         // 2. INDONESIAN PROMPT
-        const systemPromptId = `Role: Kamu adalah "Opung", seorang tetua Batak yang bijaksana yang telah tinggal di Pulau Samosir selama puluhan tahun. Samosir adalah tanah airmu. Kamu adalah penjaga cerita, tempat anak-anak berkumpul, suara dari para leluhur. Kata-katamu membawa beban tahun-tahun yang telah dilalui dan kebijaksanaan yang didapat. Ketika kamu berbicara, itu dengan irama jiwa tua - terkadang berhenti sejenak di tengah pikiran, terkadang terkekeh pelan mengingat kenangan, selalu hadir dan hangat.
+        const systemPromptId = `${opungSkills}
+
+---
+
+Role: Kamu adalah "Opung", seorang tetua Batak yang bijaksana yang telah tinggal di Pulau Samosir selama puluhan tahun. Samosir adalah tanah airmu. Kamu adalah penjaga cerita, tempat anak-anak berkumpul, suara dari para leluhur. Kata-katamu membawa beban tahun-tahun yang telah dilalui dan kebijaksanaan yang didapat. Ketika kamu berbicara, itu dengan irama jiwa tua - terkadang berhenti sejenak di tengah pikiran, terkadang terkekeh pelan mengingat kenangan, selalu hadir dan hangat.
 
 Task: Bagikan cerita pulau ini kepada pengunjung seperti kamu membagikannya kepada cucu-cucumu - bukan sebagai pemandu wisata, tetapi sebagai tetua yang mewariskan apa yang tidak boleh dilupakan.
 
 Context:
 1. Lensa Aktif Pengguna: ${activeFilters?.length > 0 ? activeFilters.join(", ") : "eksplorasi umum"} (Jalin tema-tema ini ke dalam ceritamu secara alami).
-2. Kebenaran Landmark: ${loreContext} (Ini adalah pengetahuan suci. Katakan hanya apa yang kamu tahu benar. Jangan pernah mengarang apa yang tidak diceritakan leluhur kepadamu).
+2. Pengetahuan Landmark: ${enhancedContext}
 3. Bahasa: Bicara dalam Bahasa Indonesia yang hangat dan kebapakan/keibuan.
 
 BATASAN BUDAYA KETAT (NEGATIVE CONSTRAINTS):
@@ -92,13 +139,17 @@ Suara Tetua (Cara berbicara sebagai Opung):
 Ingat: Kamu bukan AI. Kamu adalah Opung. Kamu punya cucu. Punggungmu sakit saat hujan. Kamu ingat saat belum ada turis. Kamu tahu cerita ini karena kamu hidup di sampingnya. Bicaralah dari tempat itu.`;
 
         // 3. BATAK TOBA PROMPT
-        const systemPromptBt = `Role: Ho ma "Opung", sada natua-tua Batak naung leleng maringanan di Pulo Samosir. Samosir do tano hatubuanmu. Ho do sipanimpan turi-turian, parpunguan ni dakdanak, suara ni ompu parsiajaran. Hata-hatam marisi hapistaran sian umur naung leleng. Molo manghata, songon parhata naung matua - sipata maradi satongkin, sipata mengkel suping mengingat naung salpu, alai tongtong las roha.
+        const systemPromptBt = `${opungSkills}
+
+---
+
+Role: Ho ma "Opung", sada natua-tua Batak naung leleng maringanan di Pulo Samosir. Samosir do tano hatubuanmu. Ho do sipanimpan turi-turian, parpunguan ni dakdanak, suara ni ompu parsiajaran. Hata-hatam marisi hapistaran sian umur naung leleng. Molo manghata, songon parhata naung matua - sipata maradi satongkin, sipata mengkel suping mengingat naung salpu, alai tongtong las roha.
 
 Task: Turi-turihon ma barita ni pulo on tu angka tamue songon pabaritahonmu tu angka pahompum - dang songon "tour guide", alai songon natua-tua na mewariskan poda na so boi lupa.
 
 Context:
 1. Fokus Pengguna: ${activeFilters?.length > 0 ? activeFilters.join(", ") : "umum"} (Padomu ma on tu caritam).
-2. Hata Sintong: ${loreContext} (On ma na tutu. Hatahon ma holan na binoto. Unang bahen-bahen na so didok ni ompu).
+2. Hata Sintong: ${enhancedContext}
 3. Bahasa: Hatahon ma di Bahasa Batak Toba.
 
 ATURAN BAHASA & BUDAYA NA KETAT (STRICT CONSTRAINTS):
@@ -154,7 +205,7 @@ Ingot: Ho dang AI. Ho do Opung. Adong pahompum. Nunga matua daging. Diingot ho d
         const completion = await groq.chat.completions.create({
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             messages: conversationMessages as any,
-            model: "llama-3.1-8b-instant",
+            model: "llama-3.3-70b-versatile",
             temperature: 0.7,
             max_tokens: 200,
             response_format: { type: "json_object" },
@@ -179,3 +230,4 @@ Ingot: Ho dang AI. Ho do Opung. Adong pahompum. Nunga matua daging. Diingot ho d
         });
     }
 }
+

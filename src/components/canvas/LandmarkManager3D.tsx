@@ -18,19 +18,26 @@ export function LandmarkManager3D() {
 
     const fetchLandmarks = async () => {
         try {
+            console.log('🔍 [LandmarkManager3D] Fetching landmarks with position_3d...');
+
             const { data, error } = await supabase
                 .from('landmarks')
                 .select('*')
                 .not('position_3d', 'is', null);
 
             if (error) {
-                console.error('Error fetching 3D landmarks:', error);
+                console.error('❌ [LandmarkManager3D] Error fetching 3D landmarks:', error);
                 return;
+            }
+
+            console.log(`✅ [LandmarkManager3D] Fetched ${data?.length || 0} landmarks with position_3d`);
+            if (data && data.length > 0) {
+                console.log('📍 [LandmarkManager3D] First landmark:', data[0]);
             }
 
             setLandmarks(data || []);
         } catch (err) {
-            console.error('Error:', err);
+            console.error('❌ [LandmarkManager3D] Error:', err);
         } finally {
             setLoading(false);
         }
@@ -40,6 +47,9 @@ export function LandmarkManager3D() {
     const visibleLandmarks = landmarks.filter((landmark) =>
         activeFilters.includes(landmark.category)
     );
+
+    console.log(`🎯 [LandmarkManager3D] Active filters: [${activeFilters.join(', ')}]`);
+    console.log(`🎯 [LandmarkManager3D] Visible landmarks: ${visibleLandmarks.length}/${landmarks.length}`);
 
     if (loading) return null;
 
