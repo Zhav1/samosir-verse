@@ -310,3 +310,212 @@ Agents reading this file must treat it as “persistent world-state”
     - Create a dictionary/translation file for static UI text.
     - Replace hardcoded strings with a translation hook (e.g., `useTranslation`).
     - Ensure `LocalizedText` or the translation hook handles the dual-text display for all static content when 'BT' is active.
+
+---
+
+## 15. AI Knowledge Base System (Added: 2026-01-09)
+
+### 15.1 Architecture Overview
+
+The AI Opung chatbot now uses a **file-based RAG-like knowledge system** for grounding responses:
+
+```
+knowledge/
+├── opung-skills.md           # Agent persona definition (included in EVERY request)
+├── glossary.md               # Cultural term translations (EN/ID/BT)
+└── landmarks/
+    ├── folklore/ (5 files)
+    ├── music/ (5 files)
+    ├── food/ (5 files)
+    ├── history/ (5 files)
+    └── nature/ (5 files)
+```
+
+### 15.2 Knowledge File Structure
+
+Each landmark knowledge file (~1000 words) contains:
+
+| Section | Purpose |
+|---------|---------|
+| **Core Knowledge** | Extended historical/cultural content |
+| **Opung's Memory** | First-person anecdotes in Opung's voice |
+| **Sensory Details** | Sight, sound, smell, touch descriptions |
+| **Key Facts** | Quick reference bullet points |
+| **Cultural Connections** | Cross-references to related landmarks |
+| **Common Misconceptions** | Table correcting false assumptions |
+| **Term Glossary** | EN/ID/Batak Toba translations |
+
+### 15.3 Knowledge Loader (`src/lib/knowledge.ts`)
+
+Key features:
+- **In-memory cache** with 5-minute TTL
+- **Token truncation** (max 600 tokens per knowledge block)
+- **Smart slug generation** from titles
+- **Fallback to DB lore_context** if file not found
+
+```typescript
+// Core functions
+getOpungSkills()           // Persona definition - included in EVERY request
+getLandmarkKnowledge(title, category)  // Specific landmark content
+buildEnhancedContext(title, category, loreContext, language)  // Combines all
+truncateToTokenLimit(text, maxTokens)   // Token management
+```
+
+### 15.4 Important: Opung Skills Inclusion
+
+**CRITICAL**: `opung-skills.md` is now included in EVERY API request regardless of landmark. This ensures consistent role-playing behavior with:
+- Warm "Horas!" greetings
+- Batak elder persona
+- Appropriate tone shifts by category
+- Cultural boundaries (no speculation beyond facts)
+
+---
+
+## 16. Prompt Guard Integration (Added: 2026-01-09)
+
+### 16.1 Model Used
+
+```
+meta-llama/llama-prompt-guard-2-86m
+```
+
+### 16.2 Implementation
+
+Location: `src/lib/knowledge.ts` → `checkPromptSafety()`
+
+The guard runs on **every user message** (not just follow-ups):
+
+```typescript
+async function checkPromptSafety(userMessage: string): Promise<{safe: boolean, reason?: string}>
+```
+
+### 16.3 Response When Blocked
+
+If unsafe input detected, returns polite in-character rejection:
+
+```json
+{
+  "message": "Horas! I sense you wish to speak of things beyond our traditions. Perhaps we can discuss the wonders of Samosir instead?",
+  "emotion": "serious"
+}
+```
+
+### 16.4 Environment Requirements
+
+```bash
+GROQ_API_KEY=gsk_xxxxx  # Required for both main model and prompt guard
+```
+
+---
+
+## 17. Critical Implementation Discoveries
+
+### 17.1 React Strict Mode + PhotoSphereViewer
+
+**Problem**: React 18 Strict Mode runs effects twice in development.
+**Solution**: Use `isMounted` flag to prevent double initialization:
+
+```typescript
+useEffect(() => {
+  let isMounted = true;
+  if (isMounted && !viewerInstanceRef.current) {
+    // Initialize viewer only once
+  }
+  return () => { isMounted = false; };
+}, []);
+```
+
+### 17.2 VirtualTourPlugin Configuration
+
+**CRITICAL**: Use `positionMode: 'manual'` (NOT 'gps')
+
+The current database schema doesn't include GPS coordinates. Manual mode calculates positions automatically from the `links` field.
+
+### 17.3 React-Three-Fiber Geometry
+
+**CRITICAL DISCOVERY**: Cannot use `<primitive object={geometry}>` for THREE.Geometry objects.
+
+```typescript
+// ❌ WRONG - will fail silently
+<primitive object={new THREE.ConeGeometry(2, 1.5, 8, 1)} />
+
+// ✅ CORRECT - declarative component
+<coneGeometry args={[2, 1.5, 8, 1]} />
+```
+
+### 17.4 Knowledge File Loading on Vercel
+
+**Important**: Using `fs` module with `process.cwd()` for file paths:
+
+```typescript
+const filePath = path.join(process.cwd(), 'knowledge', 'landmarks', category, `${slug}.md`);
+```
+
+This works because Next.js includes the `knowledge/` directory in the build output.
+
+### 17.5 Token Management Strategy
+
+**Max tokens per knowledge block**: 600 tokens
+**Estimation method**: `text.length / 4` (rough approximation)
+**Truncation**: Smart sentence-boundary truncation
+
+---
+
+## 18. Updated Folder Structure
+
+```
+src/
+  app/
+    layout.tsx
+    page.tsx
+    api/
+      chat/
+        story/
+          route.ts        # ← Enhanced with knowledge + prompt guard
+  components/
+    canvas/
+      SkyIsland.tsx
+      AtmosphereEffects.tsx
+    explore/
+      PanoramaViewer.tsx
+    ui/
+      FilterSidebar.tsx
+      NPCModal.tsx         # ← Passes category to API
+      TransitionOverlay.tsx
+      ProductDetailModal.tsx
+      Compass.tsx
+  lib/
+    supabase.ts
+    knowledge.ts           # ← NEW: Knowledge loader + prompt guard
+    constants.ts
+
+knowledge/                  # ← NEW: Root-level knowledge base
+  opung-skills.md
+  glossary.md
+  landmarks/
+    folklore/*.md (5)
+    music/*.md (5)
+    food/*.md (5)
+    history/*.md (5)
+    nature/*.md (5)
+```
+
+---
+
+## 19. Phase 6 Progress Log (Updated: 2026-01-09)
+
+### Completed:
+✔ Knowledge base directory structure created
+✔ `opung-skills.md` persona definition written
+✔ `glossary.md` with EN/ID/BT translations
+✔ All 25 landmark knowledge files enhanced (~1000 words each)
+✔ `knowledge.ts` with caching, truncation, and context building
+✔ Prompt guard integration using `llama-prompt-guard-2-86m`
+✔ API route updated to inject knowledge context
+✔ NPCModal passes `category` parameter
+✔ Build verification passed
+
+### Pending:
+□ Live testing of chat functionality
+□ Prompt injection testing
+□ Performance monitoring of cache hit rates
