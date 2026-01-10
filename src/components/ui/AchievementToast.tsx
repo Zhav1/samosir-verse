@@ -7,7 +7,7 @@
  * Features confetti animation and slide-in effect.
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Trophy, X, Sparkles } from 'lucide-react';
 import { useAppStore } from '@/store/useAppStore';
@@ -20,6 +20,13 @@ export function AchievementToast() {
 
     const [isVisible, setIsVisible] = useState(false);
 
+    const handleDismiss = useCallback(() => {
+        setIsVisible(false);
+        setTimeout(() => {
+            setPendingAchievementToast(null);
+        }, 300);
+    }, [setPendingAchievementToast]);
+
     useEffect(() => {
         if (pendingAchievement) {
             setIsVisible(true);
@@ -31,14 +38,7 @@ export function AchievementToast() {
 
             return () => clearTimeout(timer);
         }
-    }, [pendingAchievement]);
-
-    const handleDismiss = () => {
-        setIsVisible(false);
-        setTimeout(() => {
-            setPendingAchievementToast(null);
-        }, 300);
-    };
+    }, [pendingAchievement, handleDismiss]);
 
     if (!pendingAchievement) return null;
 

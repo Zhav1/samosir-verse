@@ -6,7 +6,7 @@
  * Set new password after clicking reset link in email.
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
@@ -31,9 +31,9 @@ export default function ResetPasswordPage() {
     const [isValidSession, setIsValidSession] = useState(false);
     const [checkingSession, setCheckingSession] = useState(true);
 
-    const getText = (en: string, id: string) => {
+    const getText = useCallback((en: string, id: string) => {
         return language === 'id' || language === 'bt' ? id : en;
-    };
+    }, [language]);
 
     // Password validation
     const passwordChecks = {

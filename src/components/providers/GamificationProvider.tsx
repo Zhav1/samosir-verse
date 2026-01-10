@@ -31,7 +31,7 @@ interface GamificationProviderProps {
     landmarks?: Landmark[];
 }
 
-export function GamificationProvider({ children, landmarks = [] }: GamificationProviderProps) {
+export function GamificationProvider({ children, landmarks: _landmarks = [] }: GamificationProviderProps) {
     // Get store state
     const setUserId = useAppStore(state => state.setUserId);
     const setUserEmail = useAppStore(state => state.setUserEmail);
@@ -153,7 +153,7 @@ export function GamificationProvider({ children, landmarks = [] }: GamificationP
         return () => {
             subscription.unsubscribe();
         };
-    }, [getOrCreateAnonymousId, setUserId]);
+    }, [getOrCreateAnonymousId, setUserId, setUserEmail]);
 
     // Check achievements when visited landmarks change
     useEffect(() => {

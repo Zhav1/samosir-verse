@@ -182,7 +182,7 @@ function replaceWithServerProgress(serverData: ServerProgress): void {
  * Merge server progress into local Zustand store
  * Uses union for arrays, max for counts
  */
-function mergeServerProgress(serverData: ServerProgress): void {
+function _mergeServerProgress(serverData: ServerProgress): void {
     const store = useAppStore.getState();
     
     // Merge visited landmarks (union)

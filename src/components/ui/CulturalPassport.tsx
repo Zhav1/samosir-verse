@@ -18,43 +18,7 @@ import { useAppStore } from '@/store/useAppStore';
 import { supabase } from '@/lib/supabase';
 import { CATEGORIES, CATEGORY_COLORS, Category } from '@/lib/constants';
 import { Landmark } from '@/types';
-const LANDMARKS_BY_CATEGORY: Record<Category, { id: string; title: string; titleId: string }[]> = {
-    folklore: [
-        { id: 'sigale-gale', title: 'Sigale-gale', titleId: 'Sigale-gale' },
-        { id: 'batu-gantung', title: 'Batu Gantung', titleId: 'Batu Gantung' },
-        { id: 'tunggal-panaluan', title: 'Tunggal Panaluan', titleId: 'Tunggal Panaluan' },
-        { id: 'legend-of-toba', title: 'Legend of Toba', titleId: 'Legenda Danau Toba' },
-        { id: 'tomb-of-king-sidabutar', title: 'Tomb of King Sidabutar', titleId: 'Makam Raja Sidabutar' },
-    ],
-    music: [
-        { id: 'gondang-sabangunan', title: 'Gondang Sabangunan', titleId: 'Gondang Sabangunan' },
-        { id: 'hasapi', title: 'Hasapi', titleId: 'Hasapi' },
-        { id: 'tor-tor-dance', title: 'Tor-Tor Dance', titleId: 'Tari Tor-Tor' },
-        { id: 'sarune-bolon', title: 'Sarune Bolon', titleId: 'Sarune Bolon' },
-        { id: 'taganing', title: 'Taganing', titleId: 'Taganing' },
-    ],
-    food: [
-        { id: 'arsik', title: 'Arsik', titleId: 'Arsik' },
-        { id: 'naniura', title: 'Naniura', titleId: 'Naniura' },
-        { id: 'ombus-ombus', title: 'Ombus-Ombus', titleId: 'Ombus-Ombus' },
-        { id: 'dali-ni-horbo', title: 'Dali Ni Horbo', titleId: 'Dali Ni Horbo' },
-        { id: 'mie-gomak', title: 'Mie Gomak', titleId: 'Mie Gomak' },
-    ],
-    history: [
-        { id: 'stone-chairs', title: 'Stone Chairs', titleId: 'Batu Parsidangan' },
-        { id: 'huta-siallagan', title: 'Huta Siallagan', titleId: 'Huta Siallagan' },
-        { id: 'museum-huta-bolon', title: 'Museum Huta Bolon', titleId: 'Museum Huta Bolon' },
-        { id: 'tele-tower', title: 'Tele Tower', titleId: 'Menara Tele' },
-        { id: 'tugu-aritonang', title: 'Tugu Aritonang', titleId: 'Tugu Aritonang' },
-    ],
-    nature: [
-        { id: 'pusuk-buhit', title: 'Pusuk Buhit', titleId: 'Pusuk Buhit' },
-        { id: 'holbung-hill', title: 'Holbung Hill', titleId: 'Bukit Holbung' },
-        { id: 'binangalom-waterfall', title: 'Binangalom Waterfall', titleId: 'Air Terjun Binangalom' },
-        { id: 'efrata-waterfall', title: 'Efrata Waterfall', titleId: 'Air Terjun Efrata' },
-        { id: 'parbaba-beach', title: 'Parbaba Beach', titleId: 'Pantai Parbaba' },
-    ],
-};
+// Landmark data now fetched from Supabase instead of hardcoded
 
 interface CulturalPassportProps {
     isOpen: boolean;
@@ -67,7 +31,7 @@ export function CulturalPassport({ isOpen, onClose }: CulturalPassportProps) {
 
     const [currentPage, setCurrentPage] = useState(0);
     const [landmarks, setLandmarks] = useState<Landmark[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [_loading, setLoading] = useState(true);
 
     // Fetch landmarks from Supabase
     useEffect(() => {

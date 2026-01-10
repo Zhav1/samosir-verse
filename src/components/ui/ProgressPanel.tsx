@@ -32,8 +32,6 @@ export function ProgressPanel({ isOpen, onClose }: ProgressPanelProps) {
     const userId = useAppStore(state => state.userId);
     const userEmail = useAppStore(state => state.userEmail);
     const setAuthModalOpen = useAppStore(state => state.setAuthModalOpen);
-    const setUserId = useAppStore(state => state.setUserId);
-    const setUserEmail = useAppStore(state => state.setUserEmail);
 
     const [landmarks, setLandmarks] = useState<Landmark[]>([]);
 
