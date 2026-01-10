@@ -5,12 +5,36 @@ import {
     checkPromptSafety,
     getOpungSkills 
 } from "@/lib/knowledge";
+import { checkRateLimit, getRateLimitHeaders } from "@/lib/rateLimit";
 
 const groq = new Groq({
     apiKey: process.env.GROQ_API_KEY,
 });
 
 export async function POST(request: NextRequest) {
+    // ============================================================
+    // RATE LIMITING: Prevent API abuse
+    // ============================================================
+    const ip = request.headers.get('x-forwarded-for')?.split(',')[0] || 
+               request.headers.get('x-real-ip') || 
+               'anonymous';
+    
+    const rateLimitResult = checkRateLimit(`story:${ip}`);
+    
+    if (!rateLimitResult.success) {
+        return NextResponse.json(
+            { 
+                error: "Too many requests. Please wait a moment before asking Opung again.",
+                message: "Horas! Opung needs a moment to rest. Please come back shortly.",
+                emotion: "peaceful"
+            },
+            { 
+                status: 429,
+                headers: getRateLimitHeaders(rateLimitResult)
+            }
+        );
+    }
+
     try {
         const body = await request.json();
         const { activeFilters, loreContext, landmarkTitle, language, messages, category } = body;
@@ -213,13 +237,25 @@ Ingot: Ho dang AI. Ho do Opung. Adong pahompum. Nunga matua daging. Diingot ho d
 
         const responseContent = completion.choices[0]?.message?.content;
 
+        // Log token usage for monitoring
+        if (completion.usage) {
+            console.log('[AI Usage]', {
+                landmark: landmarkTitle,
+                promptTokens: completion.usage.prompt_tokens,
+                completionTokens: completion.usage.completion_tokens,
+                totalTokens: completion.usage.total_tokens,
+            });
+        }
+
         if (!responseContent) {
             throw new Error("No response from AI");
         }
 
         const parsedResponse = JSON.parse(responseContent);
 
-        return NextResponse.json(parsedResponse);
+        return NextResponse.json(parsedResponse, {
+            headers: getRateLimitHeaders(rateLimitResult)
+        });
     } catch (error) {
         console.error("AI Story Generation Error:", error);
 

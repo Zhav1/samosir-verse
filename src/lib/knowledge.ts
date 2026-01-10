@@ -168,8 +168,18 @@ export async function checkPromptSafety(userMessage: string): Promise<SafetyChec
         return { safe: true };
     } catch (error) {
         console.error('[PromptGuard] Safety check failed:', error);
-        // Fail open - allow message if guard fails (better UX)
-        return { safe: true };
+        
+        // FAIL CLOSED by default for security (configurable via env)
+        const failOpen = process.env.PROMPT_GUARD_FAIL_OPEN === 'true';
+        if (failOpen) {
+            console.warn('[PromptGuard] Failing open due to PROMPT_GUARD_FAIL_OPEN=true');
+            return { safe: true };
+        }
+        
+        return { 
+            safe: false, 
+            reason: 'safety_check_unavailable' 
+        };
     }
 }
 

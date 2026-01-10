@@ -1,7 +1,12 @@
 import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
 import { Landmark } from '@/types';
 import { CATEGORIES, Category } from '@/lib/constants';
 import * as THREE from 'three';
+
+// ============================================================
+// TYPE DEFINITIONS
+// ============================================================
 
 // Phase 5: View Mode State Machine
 type ViewMode = '3d-sky' | '3d-focused' | '360-panorama' | 'static-image';
@@ -13,6 +18,23 @@ interface SelectedLandmark3D {
     title: string;
     landmark: Landmark;
 }
+
+// Phase 6: Gamification Types
+export interface Achievement {
+    id: string;
+    unlockedAt: string; // ISO date string
+}
+
+export interface QuizScore {
+    landmarkId: string;
+    score: number;
+    maxScore: number;
+    completedAt: string;
+}
+
+// ============================================================
+// STATE INTERFACE
+// ============================================================
 
 interface AppState {
     // Navigation System
@@ -63,59 +85,209 @@ interface AppState {
     volume: number;
     setIsAudioPlaying: (isPlaying: boolean) => void;
     setVolume: (volume: number) => void;
+
+    // ============================================================
+    // PHASE 6: GAMIFICATION STATE
+    // ============================================================
+    
+    // Anonymous ID (for progress tracking before auth)
+    anonymousId: string | null;
+    getOrCreateAnonymousId: () => string;
+    
+    // Progress Tracking
+    visitedLandmarks: string[]; // Array of landmark IDs
+    markLandmarkVisited: (landmarkId: string) => void;
+    
+    // Achievements
+    achievements: Achievement[];
+    unlockAchievement: (achievementId: string) => void;
+    hasAchievement: (achievementId: string) => boolean;
+    
+    // Quiz Scores
+    quizScores: QuizScore[];
+    addQuizScore: (score: QuizScore) => void;
+    
+    // Opung Chat Count (for achievement)
+    opungChatCount: number;
+    incrementOpungChat: () => void;
+    
+    // UI State for gamification
+    isProgressPanelOpen: boolean;
+    setProgressPanelOpen: (isOpen: boolean) => void;
+    isQuizModalOpen: boolean;
+    setQuizModalOpen: (isOpen: boolean) => void;
+    
+    // Recently unlocked achievement (for toast)
+    pendingAchievementToast: Achievement | null;
+    setPendingAchievementToast: (achievement: Achievement | null) => void;
+    
+    // Auth State (for optional signup)
+    userId: string | null;
+    setUserId: (id: string | null) => void;
+    isAuthModalOpen: boolean;
+    setAuthModalOpen: (isOpen: boolean) => void;
 }
 
-export const useAppStore = create<AppState>((set) => ({
-    // Navigation
-    currentNodeId: 'sigale-gale', // Changed from 'tomok-harbor' to match available panorama nodes
-    setCurrentNode: (id) => set({ currentNodeId: id }),
+// ============================================================
+// HELPER FUNCTIONS
+// ============================================================
 
-    // Filters - All categories active by default
-    activeFilters: [...CATEGORIES],
-    toggleFilter: (category) => set((state) => ({
-        activeFilters: state.activeFilters.includes(category)
-            ? state.activeFilters.filter(c => c !== category)
-            : [...state.activeFilters, category]
-    })),
+function generateAnonymousId(): string {
+    return 'anon_' + Math.random().toString(36).substring(2, 15) + Date.now().toString(36);
+}
 
-    // NPC Modal
-    isNPCModalOpen: false,
-    currentLandmark: null,
-    setNPCModalOpen: (isOpen) => set({ isNPCModalOpen: isOpen }),
-    setCurrentLandmark: (landmark) => set({ currentLandmark: landmark }),
-    
-    // Deep linking support
-    selectedLandmarkId: null,
-    setSelectedLandmark: (landmarkId) => set({ selectedLandmarkId: landmarkId }),
+// ============================================================
+// STORE CREATION WITH PERSIST
+// ============================================================
 
-    // Phase 5: View Mode State Machine
-    viewMode: '3d-sky',
-    setViewMode: (mode) => set({ viewMode: mode }),
+export const useAppStore = create<AppState>()(
+    persist(
+        (set, get) => ({
+            // Navigation
+            currentNodeId: 'sigale-gale',
+            setCurrentNode: (id) => set({ currentNodeId: id }),
 
-    selectedLandmark3D: null,
-    setSelectedLandmark3D: (landmark) => set({ selectedLandmark3D: landmark }),
+            // Filters - All categories active by default
+            activeFilters: [...CATEGORIES],
+            toggleFilter: (category) => set((state) => ({
+                activeFilters: state.activeFilters.includes(category)
+                    ? state.activeFilters.filter(c => c !== category)
+                    : [...state.activeFilters, category]
+            })),
 
-    // Camera Animation State
-    cameraTarget: null,
-    isCameraAnimating: false,
-    setCameraTarget: (target) => set({ cameraTarget: target }),
-    setIsCameraAnimating: (isAnimating) => set({ isCameraAnimating: isAnimating }),
+            // NPC Modal
+            isNPCModalOpen: false,
+            currentLandmark: null,
+            setNPCModalOpen: (isOpen) => set({ isNPCModalOpen: isOpen }),
+            setCurrentLandmark: (landmark) => set({ currentLandmark: landmark }),
+            
+            // Deep linking support
+            selectedLandmarkId: null,
+            setSelectedLandmark: (landmarkId) => set({ selectedLandmarkId: landmarkId }),
 
-    // Language System
-    language: 'id', // Default to Indonesian
-    setLanguage: (lang) => set({ language: lang }),
+            // Phase 5: View Mode State Machine
+            viewMode: '3d-sky',
+            setViewMode: (mode) => set({ viewMode: mode }),
 
-    // Item Detail Modal State
-    itemDetailId: null,
-    setItemDetailId: (id: string | null) => set({ itemDetailId: id }),
+            selectedLandmark3D: null,
+            setSelectedLandmark3D: (landmark) => set({ selectedLandmark3D: landmark }),
 
-    // Tor-Tor Video Modal State
-    isTortorModalOpen: false,
-    setTortorModalOpen: (isOpen: boolean) => set({ isTortorModalOpen: isOpen }),
+            // Camera Animation State
+            cameraTarget: null,
+            isCameraAnimating: false,
+            setCameraTarget: (target) => set({ cameraTarget: target }),
+            setIsCameraAnimating: (isAnimating) => set({ isCameraAnimating: isAnimating }),
 
-    // Audio System
-    isAudioPlaying: false,
-    volume: 50,
-    setIsAudioPlaying: (isPlaying) => set({ isAudioPlaying: isPlaying }),
-    setVolume: (volume) => set({ volume }),
-}));
+            // Language System
+            language: 'id',
+            setLanguage: (lang) => set({ language: lang }),
+
+            // Item Detail Modal State
+            itemDetailId: null,
+            setItemDetailId: (id: string | null) => set({ itemDetailId: id }),
+
+            // Tor-Tor Video Modal State
+            isTortorModalOpen: false,
+            setTortorModalOpen: (isOpen: boolean) => set({ isTortorModalOpen: isOpen }),
+
+            // Audio System
+            isAudioPlaying: false,
+            volume: 50,
+            setIsAudioPlaying: (isPlaying) => set({ isAudioPlaying: isPlaying }),
+            setVolume: (volume) => set({ volume }),
+
+            // ============================================================
+            // PHASE 6: GAMIFICATION IMPLEMENTATION
+            // ============================================================
+            
+            // Anonymous ID
+            anonymousId: null,
+            getOrCreateAnonymousId: () => {
+                const current = get().anonymousId;
+                if (current) return current;
+                
+                const newId = generateAnonymousId();
+                set({ anonymousId: newId });
+                return newId;
+            },
+            
+            // Progress Tracking
+            visitedLandmarks: [],
+            markLandmarkVisited: (landmarkId) => set((state) => {
+                if (state.visitedLandmarks.includes(landmarkId)) {
+                    return state; // Already visited
+                }
+                return {
+                    visitedLandmarks: [...state.visitedLandmarks, landmarkId]
+                };
+            }),
+            
+            // Achievements
+            achievements: [],
+            unlockAchievement: (achievementId) => set((state) => {
+                if (state.achievements.some(a => a.id === achievementId)) {
+                    return state; // Already unlocked
+                }
+                const newAchievement: Achievement = {
+                    id: achievementId,
+                    unlockedAt: new Date().toISOString(),
+                };
+                return {
+                    achievements: [...state.achievements, newAchievement],
+                    pendingAchievementToast: newAchievement,
+                };
+            }),
+            hasAchievement: (achievementId) => {
+                return get().achievements.some(a => a.id === achievementId);
+            },
+            
+            // Quiz Scores
+            quizScores: [],
+            addQuizScore: (score) => set((state) => ({
+                quizScores: [...state.quizScores, score]
+            })),
+            
+            // Opung Chat Count
+            opungChatCount: 0,
+            incrementOpungChat: () => set((state) => ({
+                opungChatCount: state.opungChatCount + 1
+            })),
+            
+            // Gamification UI State
+            isProgressPanelOpen: false,
+            setProgressPanelOpen: (isOpen) => set({ isProgressPanelOpen: isOpen }),
+            isQuizModalOpen: false,
+            setQuizModalOpen: (isOpen) => set({ isQuizModalOpen: isOpen }),
+            
+            // Achievement Toast
+            pendingAchievementToast: null,
+            setPendingAchievementToast: (achievement) => set({ pendingAchievementToast: achievement }),
+            
+            // Auth State
+            userId: null,
+            setUserId: (id) => set({ userId: id }),
+            isAuthModalOpen: false,
+            setAuthModalOpen: (isOpen) => set({ isAuthModalOpen: isOpen }),
+        }),
+        {
+            name: 'samosir360-storage',
+            storage: createJSONStorage(() => localStorage),
+            // Only persist specific fields (not transient UI state)
+            partialize: (state) => ({
+                // User preferences
+                language: state.language,
+                volume: state.volume,
+                
+                // Gamification data (persist these!)
+                anonymousId: state.anonymousId,
+                visitedLandmarks: state.visitedLandmarks,
+                achievements: state.achievements,
+                quizScores: state.quizScores,
+                opungChatCount: state.opungChatCount,
+                
+                // Auth
+                userId: state.userId,
+            }),
+        }
+    )
+);
