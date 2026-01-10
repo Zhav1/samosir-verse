@@ -46,6 +46,12 @@ export function Landmark3D({ id, position, nodeId, title, category, landmark }: 
     });
 
     const handleClick = () => {
+        console.log('[Landmark3D] Clicked:', id, title);
+
+        // NOTE: Progress tracking moved to SkyIsland.handleEnter360View
+        // Only track when user actually clicks "Masuk Tampilan" to enter,
+        // not just when clicking the glowmark
+
         // Store the landmark data
         setSelectedLandmark3D({
             id,

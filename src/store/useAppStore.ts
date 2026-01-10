@@ -123,9 +123,22 @@ interface AppState {
     
     // Auth State (for optional signup)
     userId: string | null;
+    userEmail: string | null;
     setUserId: (id: string | null) => void;
+    setUserEmail: (email: string | null) => void;
     isAuthModalOpen: boolean;
     setAuthModalOpen: (isOpen: boolean) => void;
+    
+    // Reset all progress (call on logout)
+    resetProgress: () => void;
+    
+    // Set progress atomically (REPLACE, not merge - for loading from server)
+    setProgress: (data: {
+        visitedLandmarks?: string[];
+        achievements?: Achievement[];
+        quizScores?: QuizScore[];
+        opungChatCount?: number;
+    }) => void;
 }
 
 // ============================================================
@@ -214,11 +227,19 @@ export const useAppStore = create<AppState>()(
             // Progress Tracking
             visitedLandmarks: [],
             markLandmarkVisited: (landmarkId) => set((state) => {
+                console.log('[useAppStore] markLandmarkVisited called with:', landmarkId);
+                console.log('[useAppStore] Current visitedLandmarks:', state.visitedLandmarks);
+                
                 if (state.visitedLandmarks.includes(landmarkId)) {
+                    console.log('[useAppStore] ⚠️ Already visited, skipping');
                     return state; // Already visited
                 }
+                
+                const newVisited = [...state.visitedLandmarks, landmarkId];
+                console.log('[useAppStore] ✅ Adding to visited, new array:', newVisited);
+                
                 return {
-                    visitedLandmarks: [...state.visitedLandmarks, landmarkId]
+                    visitedLandmarks: newVisited
                 };
             }),
             
@@ -265,9 +286,31 @@ export const useAppStore = create<AppState>()(
             
             // Auth State
             userId: null,
+            userEmail: null,
             setUserId: (id) => set({ userId: id }),
+            setUserEmail: (email) => set({ userEmail: email }),
             isAuthModalOpen: false,
             setAuthModalOpen: (isOpen) => set({ isAuthModalOpen: isOpen }),
+            
+            // Reset all progress (call on logout)
+            resetProgress: () => set({
+                visitedLandmarks: [],
+                achievements: [],
+                quizScores: [],
+                opungChatCount: 0,
+                pendingAchievementToast: null,
+                anonymousId: null, // Will regenerate on next visit
+                userId: null,
+                userEmail: null,
+            }),
+            
+            // Set progress atomically (REPLACE, not merge - for loading from server)
+            setProgress: (data) => set((state) => ({
+                visitedLandmarks: data.visitedLandmarks ?? state.visitedLandmarks,
+                achievements: data.achievements ?? state.achievements,
+                quizScores: data.quizScores ?? state.quizScores,
+                opungChatCount: data.opungChatCount ?? state.opungChatCount,
+            })),
         }),
         {
             name: 'samosir360-storage',

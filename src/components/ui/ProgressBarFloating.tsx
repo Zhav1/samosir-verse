@@ -24,6 +24,8 @@ export function ProgressBarFloating({ onOpenPassport, onOpenPanel }: ProgressBar
     const achievements = useAppStore(state => state.achievements);
     const language = useAppStore(state => state.language);
 
+    console.log('[ProgressBarFloating] Rendering with visitedLandmarks:', visitedLandmarks);
+
     const visitedCount = visitedLandmarks.length;
     const totalLandmarks = 25;
     const percentage = Math.round((visitedCount / totalLandmarks) * 100);
@@ -37,7 +39,7 @@ export function ProgressBarFloating({ onOpenPassport, onOpenPanel }: ProgressBar
             initial={{ y: 100, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 1, type: 'spring' }}
-            className="fixed bottom-4 left-4 z-50"
+            className="fixed bottom-4 left-1/2 -translate-x-1/2 md:left-4 md:translate-x-0 z-50"
             onMouseEnter={() => setIsExpanded(true)}
             onMouseLeave={() => setIsExpanded(false)}
         >

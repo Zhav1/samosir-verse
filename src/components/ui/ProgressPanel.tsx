@@ -4,17 +4,21 @@
  * Progress Panel Component
  * 
  * Slide-out panel showing exploration progress, visited landmarks,
- * and unlocked achievements. Includes "Save Progress" CTA for anonymous users.
+ * and unlocked achievements. Includes "Save Progress" CTA for anonymous users
+ * and logout functionality for authenticated users.
  */
 
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     X, MapPin, Trophy, ChevronRight,
-    User, Sparkles, CheckCircle2
+    User, Sparkles, CheckCircle2, LogOut
 } from 'lucide-react';
 import { useAppStore } from '@/store/useAppStore';
+import { supabase } from '@/lib/supabase';
 import { ACHIEVEMENTS } from '@/lib/achievements';
 import { CATEGORIES, CATEGORY_COLORS, Category } from '@/lib/constants';
+import { Landmark } from '@/types';
 
 interface ProgressPanelProps {
     isOpen: boolean;
@@ -26,9 +30,30 @@ export function ProgressPanel({ isOpen, onClose }: ProgressPanelProps) {
     const visitedLandmarks = useAppStore(state => state.visitedLandmarks);
     const achievements = useAppStore(state => state.achievements);
     const userId = useAppStore(state => state.userId);
+    const userEmail = useAppStore(state => state.userEmail);
     const setAuthModalOpen = useAppStore(state => state.setAuthModalOpen);
+    const setUserId = useAppStore(state => state.setUserId);
+    const setUserEmail = useAppStore(state => state.setUserEmail);
+
+    const [landmarks, setLandmarks] = useState<Landmark[]>([]);
 
     const isAnonymous = !userId;
+
+    // Fetch landmarks for category progress
+    useEffect(() => {
+        const fetchLandmarks = async () => {
+            const { data } = await supabase.from('landmarks').select('*');
+            if (data) setLandmarks(data);
+        };
+        if (isOpen) fetchLandmarks();
+    }, [isOpen]);
+
+    // DEBUG: Log what the component is actually receiving
+    console.log('[ProgressPanel] === RENDER DEBUG ===');
+    console.log('[ProgressPanel] visitedLandmarks:', visitedLandmarks);
+    console.log('[ProgressPanel] visitedLandmarks.length:', visitedLandmarks.length);
+    console.log('[ProgressPanel] achievements:', achievements);
+    console.log('[ProgressPanel] userId:', userId);
 
     // Calculate stats
     const visitedCount = visitedLandmarks.length;
@@ -38,21 +63,61 @@ export function ProgressPanel({ isOpen, onClose }: ProgressPanelProps) {
     const unlockedCount = achievements.length;
     const totalAchievements = ACHIEVEMENTS.length;
 
-    // Category progress
+    // Category progress - calculated from actual landmarks
     const categoryProgress: Record<Category, { visited: number; total: number }> = {
-        folklore: { visited: 0, total: 5 },
-        music: { visited: 0, total: 5 },
-        food: { visited: 0, total: 5 },
-        history: { visited: 0, total: 5 },
-        nature: { visited: 0, total: 5 },
+        folklore: { visited: 0, total: 0 },
+        music: { visited: 0, total: 0 },
+        food: { visited: 0, total: 0 },
+        history: { visited: 0, total: 0 },
+        nature: { visited: 0, total: 0 },
     };
 
-    // This would need actual landmark data to calculate properly
-    // For now, just show the visited count distributed
+    // Calculate from fetched landmarks
+    landmarks.forEach(landmark => {
+        if (categoryProgress[landmark.category as Category]) {
+            categoryProgress[landmark.category as Category].total++;
+            if (visitedLandmarks.includes(landmark.id)) {
+                categoryProgress[landmark.category as Category].visited++;
+            }
+        }
+    });
 
     const handleSaveProgress = () => {
         onClose();
         setAuthModalOpen(true);
+    };
+
+    const handleLogout = async () => {
+        try {
+            console.log('[ProgressPanel] Starting logout...');
+
+            // Sign out from Supabase
+            await supabase.auth.signOut();
+
+            // Clear ALL localStorage (not just our key)
+            // This ensures Supabase session storage is also cleared
+            const keysToRemove: string[] = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key) {
+                    keysToRemove.push(key);
+                }
+            }
+            keysToRemove.forEach(key => {
+                console.log('[ProgressPanel] Removing localStorage key:', key);
+                localStorage.removeItem(key);
+            });
+
+            // Also clear sessionStorage just in case
+            sessionStorage.clear();
+
+            console.log('[ProgressPanel] All storage cleared, reloading...');
+
+            // Reload the page to get a completely fresh state
+            window.location.reload();
+        } catch (error) {
+            console.error('[ProgressPanel] Logout error:', error);
+        }
     };
 
     const getText = (en: string, id: string) => {
@@ -100,6 +165,32 @@ export function ProgressPanel({ isOpen, onClose }: ProgressPanelProps) {
 
                         {/* Content */}
                         <div className="p-4 space-y-6">
+                            {/* User Info Section (when authenticated) */}
+                            {!isAnonymous && (
+                                <section className="bg-gradient-to-r from-green-600/20 to-emerald-600/20 rounded-2xl p-4 border border-green-500/30">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 bg-green-500/20 rounded-full flex items-center justify-center">
+                                            <User className="text-green-400" size={20} />
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-sm text-green-400 font-medium truncate">
+                                                {userEmail || getText('Authenticated User', 'Pengguna Terautentikasi')}
+                                            </p>
+                                            <p className="text-xs text-white/40 font-mono truncate">
+                                                ID: {userId?.slice(0, 8)}...{userId?.slice(-4)}
+                                            </p>
+                                        </div>
+                                        <button
+                                            onClick={handleLogout}
+                                            className="p-2 rounded-lg bg-red-500/20 hover:bg-red-500/30 
+                                                     border border-red-500/30 transition-colors"
+                                            title={getText('Logout', 'Keluar')}
+                                        >
+                                            <LogOut className="text-red-400" size={18} />
+                                        </button>
+                                    </div>
+                                </section>
+                            )}
                             {/* Overall Progress */}
                             <section className="bg-white/5 rounded-2xl p-4 border border-white/10">
                                 <div className="flex items-center justify-between mb-3">

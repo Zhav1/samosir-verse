@@ -5,15 +5,46 @@
  * Runs client-side using Zustand store data.
  */
 
+import { supabase } from '@/lib/supabase';
 import { useAppStore, QuizScore } from '@/store/useAppStore';
 import { ACHIEVEMENTS, AchievementDefinition } from '@/lib/achievements';
 import { Landmark } from '@/types';
+
+// Cache landmarks to avoid fetching on every check
+let cachedLandmarks: Landmark[] | null = null;
+
+/**
+ * Fetch all landmarks from Supabase (with caching)
+ */
+async function fetchLandmarks(): Promise<Landmark[]> {
+    if (cachedLandmarks !== null) {
+        return cachedLandmarks;
+    }
+    
+    try {
+        const { data, error } = await supabase
+            .from('landmarks')
+            .select('*');
+        
+        if (error) {
+            console.warn('[AchievementService] Failed to fetch landmarks:', error);
+            return [];
+        }
+        
+        cachedLandmarks = data || [];
+        console.log(`[AchievementService] Cached ${cachedLandmarks.length} landmarks`);
+        return cachedLandmarks;
+    } catch (err) {
+        console.warn('[AchievementService] Error fetching landmarks:', err);
+        return [];
+    }
+}
 
 /**
  * Check all achievements and unlock any that are newly earned
  * Call this after any progress-related action
  */
-export function checkAndUnlockAchievements(landmarks: Landmark[]): string[] {
+export async function checkAndUnlockAchievements(): Promise<string[]> {
     const store = useAppStore.getState();
     const { 
         visitedLandmarks, 
@@ -22,6 +53,18 @@ export function checkAndUnlockAchievements(landmarks: Landmark[]): string[] {
         hasAchievement,
         unlockAchievement 
     } = store;
+    
+    // Fetch landmarks from database
+    const landmarks = await fetchLandmarks();
+    
+    if (landmarks.length === 0) {
+        console.warn('[AchievementService] No landmarks available for achievement check');
+        return [];
+    }
+    
+    console.log('[AchievementService] Checking achievements...');
+    console.log('[AchievementService] Visited landmarks:', visitedLandmarks);
+    console.log('[AchievementService] Total landmarks:', landmarks.length);
     
     const newlyUnlocked: string[] = [];
     
@@ -39,9 +82,14 @@ export function checkAndUnlockAchievements(landmarks: Landmark[]): string[] {
         );
         
         if (isUnlocked) {
+            console.log('[AchievementService] 🏆 Unlocking achievement:', achievement.id);
             unlockAchievement(achievement.id);
             newlyUnlocked.push(achievement.id);
         }
+    }
+    
+    if (newlyUnlocked.length > 0) {
+        console.log('[AchievementService] Newly unlocked:', newlyUnlocked);
     }
     
     return newlyUnlocked;
@@ -69,6 +117,7 @@ function checkRequirement(
             const visitedInCategory = categoryLandmarks.filter(l => 
                 visitedLandmarks.includes(l.id)
             );
+            console.log(`[AchievementService] Category ${req.category}: ${visitedInCategory.length}/${categoryLandmarks.length} (need ${req.value})`);
             return visitedInCategory.length >= req.value;
         }
             
@@ -90,13 +139,13 @@ function checkRequirement(
  * Get progress towards a specific achievement
  * Returns { current, required, percentage }
  */
-export function getAchievementProgress(
-    achievement: AchievementDefinition,
-    landmarks: Landmark[]
-): { current: number; required: number; percentage: number } {
+export async function getAchievementProgress(
+    achievement: AchievementDefinition
+): Promise<{ current: number; required: number; percentage: number }> {
     const store = useAppStore.getState();
     const { visitedLandmarks, opungChatCount, quizScores } = store;
     
+    const landmarks = await fetchLandmarks();
     const req = achievement.requirement;
     let current = 0;
     let required = 0;
@@ -152,4 +201,11 @@ export function getAchievementSummary(): {
     const percentage = Math.round((unlocked / total) * 100);
     
     return { total, unlocked, percentage };
+}
+
+/**
+ * Clear the landmarks cache (call after data changes)
+ */
+export function clearLandmarksCache(): void {
+    cachedLandmarks = null;
 }

@@ -7,6 +7,7 @@ import { OceanPlane } from "./OceanPlane";
 import { AtmosphereEffects } from "./AtmosphereEffects";
 import { useCameraAnimation } from "@/hooks/useCameraAnimation";
 import { useAppStore } from "@/store/useAppStore";
+import { syncProgressToServer } from "@/services/ProgressService";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import { useState } from "react";
@@ -33,6 +34,15 @@ export function SkyIsland() {
         // This makes the click feel responsive immediately
         setTimeout(() => {
             setCurrentNode(selectedLandmark3D.nodeId);
+
+            // 🎯 TRACK LANDMARK VISIT - This is when user actually enters the view
+            console.log('[SkyIsland] 🎯 Tracking landmark visit:', selectedLandmark3D.id);
+            useAppStore.getState().markLandmarkVisited(selectedLandmark3D.id);
+
+            // Sync to server (for authenticated users)
+            syncProgressToServer().then(success => {
+                console.log('[SkyIsland] Sync to server:', success ? 'success' : 'failed');
+            });
 
             // Auto-open NPC Modal
             if (selectedLandmark3D.landmark) {
@@ -144,10 +154,10 @@ export function SkyIsland() {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: 20 }}
-                        className="absolute bottom-24 left-1/2 -translate-x-1/2 z-20"
+                        className="absolute bottom-32 sm:bottom-24 inset-x-0 z-20 flex justify-center px-4"
                     >
                         {isCameraAnimating ? (
-                            <div className="flex items-center gap-3 px-6 py-3 bg-black/50 backdrop-blur-md border border-white/10 rounded-full text-white/80 shadow-lg">
+                            <div className="flex items-center gap-3 px-4 sm:px-6 py-2 sm:py-3 bg-black/50 backdrop-blur-md border border-white/10 rounded-full text-white/80 shadow-lg">
                                 <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                                 <span className="text-sm font-medium"><LocalizedText text={t('common.loading')} /></span>
                             </div>
@@ -155,7 +165,15 @@ export function SkyIsland() {
                             <button
                                 onClick={handleEnter360View}
                                 disabled={isLoading}
-                                className="group flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-purple-500/90 to-blue-500/90 backdrop-blur-md border-2 border-white/30 rounded-full text-white hover:from-purple-600/95 hover:to-blue-600/95 transition-all duration-300 shadow-2xl hover:shadow-purple-500/50 hover:scale-105 text-lg font-semibold disabled:opacity-70 disabled:cursor-not-allowed"
+                                className="group flex items-center justify-center gap-2 sm:gap-3 
+                                           px-6 sm:px-8 py-3 sm:py-4 
+                                           bg-gradient-to-r from-purple-500/90 to-blue-500/90 
+                                           backdrop-blur-md border-2 border-white/30 rounded-full 
+                                           text-white hover:from-purple-600/95 hover:to-blue-600/95 
+                                           transition-all duration-300 shadow-2xl hover:shadow-purple-500/50 
+                                           hover:scale-105 text-sm sm:text-lg font-semibold 
+                                           disabled:opacity-70 disabled:cursor-not-allowed
+                                           max-w-[90%] sm:max-w-none"
                             >
                                 {isLoading ? (
                                     <>
@@ -165,7 +183,7 @@ export function SkyIsland() {
                                 ) : (
                                     <>
                                         <span><LocalizedText text={t('skyIsland.enterView')} /></span>
-                                        <ArrowRight className="w-6 h-6 group-hover:translate-x-2 transition-transform" />
+                                        <ArrowRight className="w-5 h-5 sm:w-6 sm:h-6 group-hover:translate-x-2 transition-transform" />
                                     </>
                                 )}
                             </button>

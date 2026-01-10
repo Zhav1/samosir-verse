@@ -9,12 +9,11 @@ import { useCallback, useEffect, useRef } from 'react';
 import { useAppStore } from '@/store/useAppStore';
 import { checkAndUnlockAchievements } from '@/services/AchievementService';
 import { syncProgressToServer, loadProgressFromServer } from '@/services/ProgressService';
-import { Landmark } from '@/types';
 
 // Debounce sync to avoid too many requests
 const SYNC_DEBOUNCE_MS = 5000; // 5 seconds
 
-export function useProgress(landmarks: Landmark[] = []) {
+export function useProgress() {
     const syncTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     
     // Get state from store
@@ -56,24 +55,24 @@ export function useProgress(landmarks: Landmark[] = []) {
         if (!wasVisited) {
             markLandmarkVisited(landmarkId);
             
-            // Check for new achievements
+            // Check for new achievements (async)
             setTimeout(() => {
-                checkAndUnlockAchievements(landmarks);
+                checkAndUnlockAchievements();
                 scheduleSyncToServer();
             }, 100);
         }
-    }, [visitedLandmarks, markLandmarkVisited, landmarks, scheduleSyncToServer]);
+    }, [visitedLandmarks, markLandmarkVisited, scheduleSyncToServer]);
     
     // Record Opung chat interaction
     const recordOpungChat = useCallback(() => {
         incrementOpungChat();
         
-        // Check for Opung-related achievements
+        // Check for Opung-related achievements (async)
         setTimeout(() => {
-            checkAndUnlockAchievements(landmarks);
+            checkAndUnlockAchievements();
             scheduleSyncToServer();
         }, 100);
-    }, [incrementOpungChat, landmarks, scheduleSyncToServer]);
+    }, [incrementOpungChat, scheduleSyncToServer]);
     
     // Dismiss achievement toast
     const dismissAchievementToast = useCallback(() => {
@@ -95,13 +94,6 @@ export function useProgress(landmarks: Landmark[] = []) {
         return visitedLandmarks.includes(landmarkId);
     }, [visitedLandmarks]);
     
-    // Get visited landmarks by category
-    const getVisitedByCategory = useCallback((category: string) => {
-        return landmarks.filter(l => 
-            l.category === category && visitedLandmarks.includes(l.id)
-        );
-    }, [landmarks, visitedLandmarks]);
-    
     return {
         // State
         visitedLandmarks,
@@ -115,7 +107,6 @@ export function useProgress(landmarks: Landmark[] = []) {
         recordOpungChat,
         dismissAchievementToast,
         isLandmarkVisited,
-        getVisitedByCategory,
         
         // Force sync (use sparingly)
         forceSyncToServer: syncProgressToServer,

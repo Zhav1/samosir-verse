@@ -18,7 +18,7 @@ import Opung3D from "../canvas/Opung3D";
 type Emotion = "happy" | "mysterious" | "serious";
 
 export function NPCModal() {
-    const { isNPCModalOpen, setNPCModalOpen, currentLandmark, activeFilters } = useAppStore();
+    const { isNPCModalOpen, setNPCModalOpen, currentLandmark, activeFilters, incrementOpungChat } = useAppStore();
     // Chat state
     const [messages, setMessages] = useState<{ role: "user" | "assistant"; content: string }[]>([]);
     const [currentResponse, setCurrentResponse] = useState("");
@@ -116,6 +116,9 @@ export function NPCModal() {
         const newMessages = [...messages, { role: "user" as const, content: userMessage }];
         setMessages(newMessages);
         setIsLoading(true);
+
+        // Track chat interaction for achievement
+        incrementOpungChat();
 
         try {
             const response = await fetch("/api/chat/story", {
@@ -350,8 +353,20 @@ export function NPCModal() {
                                         <Send className="w-4 h-4" />
                                     </button>
                                 </div>
-                                <div className="text-[10px] text-center mt-2 text-white/30">
-                                    {isLoading ? <LocalizedText text={t('npc.listening')} /> : <LocalizedText text={t('npc.poweredBy')} />}
+                                <div className="flex items-center justify-between mt-2">
+                                    <div className="text-[10px] text-white/30">
+                                        {isLoading ? <LocalizedText text={t('npc.listening')} /> : <LocalizedText text={t('npc.poweredBy')} />}
+                                    </div>
+                                    {/* Quiz Trigger Button */}
+                                    <button
+                                        onClick={() => {
+                                            setNPCModalOpen(false);
+                                            useAppStore.getState().setQuizModalOpen(true);
+                                        }}
+                                        className="text-xs text-purple-400 hover:text-purple-300 flex items-center gap-1 transition-colors"
+                                    >
+                                        🧠 {t('quiz.title') || 'Take Quiz'}
+                                    </button>
                                 </div>
                             </div>
 

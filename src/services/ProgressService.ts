@@ -75,7 +75,9 @@ export async function syncProgressToServer(): Promise<boolean> {
         console.log('[ProgressService] Progress synced successfully');
         return true;
     } catch (error) {
-        console.error('[ProgressService] Sync failed:', error);
+        // Log but don't crash - just means server sync failed
+        // Local progress in Zustand + localStorage still works
+        console.warn('[ProgressService] Sync failed (local progress preserved):', error);
         return false;
     }
 }
@@ -88,10 +90,18 @@ export async function loadProgressFromServer(): Promise<boolean> {
     const store = useAppStore.getState();
     const { anonymousId, userId } = store;
     
+    console.log('[ProgressService] loadProgressFromServer called');
+    console.log('[ProgressService] userId:', userId);
+    console.log('[ProgressService] anonymousId:', anonymousId);
+    console.log('[ProgressService] Current visitedLandmarks:', store.visitedLandmarks);
+    
     const identifier = userId || anonymousId;
     if (!identifier) {
+        console.log('[ProgressService] No identifier, skipping load');
         return false;
     }
+    
+    console.log('[ProgressService] Loading progress for identifier:', identifier);
     
     try {
         let query = supabase.from('user_progress').select('*');
@@ -107,24 +117,68 @@ export async function loadProgressFromServer(): Promise<boolean> {
         if (error) {
             if (error.code === 'PGRST116') {
                 // No record found - that's okay for new users
+                console.log('[ProgressService] No existing progress found, starting fresh');
                 return true;
+            }
+            // Handle missing table (406) gracefully
+            if (error.message?.includes('406') || error.code === '42P01') {
+                console.warn('[ProgressService] Table not found - SQL migration may not be run yet. Local progress still works.');
+                return true; // Don't throw, just continue with local state
             }
             throw error;
         }
         
         if (data) {
-            // Merge server data with local (take maximum/union)
-            mergeServerProgress(data as ServerProgress);
+            // REPLACE local state with server data (not merge!)
+            // This ensures authenticated user sees ONLY their saved progress,
+            // not mixed with anonymous session data
+            console.log('[ProgressService] Replacing local state with server data');
+            replaceWithServerProgress(data as ServerProgress);
         }
         
         return true;
     } catch (error) {
-        console.error('[ProgressService] Load failed:', error);
-        return false;
+        // Log but don't crash - local progress still works
+        console.warn('[ProgressService] Load failed (local progress still works):', error);
+        return false; // Return false but don't throw
     }
 }
 
 /**
+ * REPLACE local progress with server data (not merge!)
+ * Called on login to show authenticated user's progress only
+ */
+function replaceWithServerProgress(serverData: ServerProgress): void {
+    const store = useAppStore.getState();
+    
+    // Clear local state first, then set server data
+    // This ensures no leftover anonymous progress
+    const serverVisited = serverData.visited_landmarks || [];
+    const serverAchievementIds = serverData.achievements || [];
+    const serverChatCount = serverData.opung_chat_count || 0;
+    
+    // Convert achievement IDs to Achievement objects
+    const achievements = serverAchievementIds.map(id => ({
+        id,
+        unlockedAt: new Date().toISOString(), // We don't store unlocked date on server, use now
+    }));
+    
+    console.log('[ProgressService] Replacing with server data:', {
+        visitedLandmarks: serverVisited.length,
+        achievements: achievements.length,
+        opungChatCount: serverChatCount
+    });
+    
+    // Use setProgress for atomic replacement
+    store.setProgress({
+        visitedLandmarks: serverVisited,
+        achievements,
+        opungChatCount: serverChatCount,
+    });
+}
+
+/**
+ * @deprecated Use replaceWithServerProgress instead
  * Merge server progress into local Zustand store
  * Uses union for arrays, max for counts
  */

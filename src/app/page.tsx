@@ -16,6 +16,7 @@ import { ProductDetailModal } from "@/components/ui/ProductDetailModal";
 import { getProductById } from "@/lib/mockProducts";
 import { TortorVideoModal } from "@/components/ui/TortorVideoModal";
 import { VolumeControl } from "@/components/ui/VolumeControl";
+import { GamificationProvider } from "@/components/providers/GamificationProvider";
 
 function HomeContent() {
   const {
@@ -151,9 +152,11 @@ function HomeContent() {
 
 export default function Home() {
   return (
-    <Suspense fallback={<div className="w-full h-screen bg-black" />}>
-      <HomeContent />
-    </Suspense>
+    <GamificationProvider>
+      <Suspense fallback={<div className="w-full h-screen bg-black" />}>
+        <HomeContent />
+      </Suspense>
+    </GamificationProvider>
   );
 }
 

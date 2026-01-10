@@ -1,62 +1,108 @@
-# Samosir 360 — Immersive Cultural Heritage Platform
+# Samosir 360 — Platform Warisan Budaya Imersif
 
 ![Samosir 360 Banner](/public/banner-placeholder.png)
 
 > **"Culture First, Technology Second."**
-> An immersive "Digital Twin" of Samosir Island focused on atmosphere, storytelling, and cultural preservation rather than GIS accuracy.
+> *Horas!* Selamat datang di Samosir 360 — Digital Twin atmosferik dari Pulau Samosir.
 
-## 🌟 The Vibe
+## 🌟 Tentang Proyek
 
-Samosir 360 is not a Google Earth clone. It is a stylized, atmospheric journey into the heart of Batak Toba culture.
-- **The Hook**: A low-poly, golden-hour 3D view of Samosir Island floating on a reflective lake.
-- **The Core**: A seamless 360° virtual tour connecting 25+ cultural landmarks.
-- **The Magic**: "Opung" — an AI-powered elder storyteller who guides you with wisdom, humor, and strict cultural accuracy.
+Samosir 360 adalah platform tur virtual interaktif yang menghadirkan kekayaan budaya Pulau Samosir langsung ke layar pengguna. Menggabungkan teknologi 3D low-poly dan panorama 360°, platform ini memungkinkan pengguna menjelajahi landmark-landmark bersejarah Danau Toba dengan pengalaman yang mendalam dan atmosferik.
 
-## ✨ Key Features
+## ✨ Fitur Utama
 
-- **3D Sky Island Intro**: Interactive low-poly 3D model of Samosir Island built with **React Three Fiber**.
-- **Immersive 360° Exploration**: Custom virtual tour engine using **Photo Sphere Viewer** with "Hub & Spoke" navigation.
-- **AI "Opung" Storyteller**:
-  - Powered by **Groq SDK (Llama 3.1)** for instant, low-latency storytelling.
-  - Context-aware: Reacts to your active "Cultural Lens" (Filters).
-  - Culturally Grounded: Strictly adheres to a "Lore Context" fact sheet to prevent hallucinations.
-  - **Trilingual**: Speaks English, Indonesian, and Batak Toba.
-- **Cultural Lenses**: Toggle filters (Folklore, Music, Food, History, Nature) to change the atmosphere and visible landmarks.
-- **Marketplace Integration**: Discover local products (Ulos, Andaliman) and connect directly with artisans via WhatsApp.
-- **Responsive & Mobile-First**: Optimized for all devices with gyroscope support for mobile immersion.
+🏝️ **Pulau 3D Interaktif**
+Model pulau bergaya low-poly dengan pencahayaan "golden hour" yang dapat dijelajahi dengan rotasi otomatis dan zoom.
 
-## 🛠️ Tech Stack
+🌐 **Navigasi Panorama 360°**
+12 titik panorama berkualitas tinggi dengan navigasi virtual tour seperti Google Street View, tanpa menggunakan API Google Maps.
 
-### Core
-- **Framework**: [Next.js 14](https://nextjs.org/) (App Router)
-- **Language**: TypeScript
-- **Styling**: Tailwind CSS + Framer Motion
+🔮 **25 Glowmarks Budaya**
+Titik-titik interaktif yang tersebar di 5 kategori: Folklore (cerita rakyat), Music & Dance (musik & tarian), Food (kuliner), History (sejarah), dan Nature (alam).
 
-### 3D & Immersion
-- **3D Engine**: [React Three Fiber](https://docs.pmnd.rs/react-three-fiber) (@react-three/fiber, @react-three/drei)
-- **360° Viewer**: [Photo Sphere Viewer](https://photo-sphere-viewer.js.org/) (Core, Virtual Tour, Markers, Gyroscope)
+🧓 **AI "Opung" Storyteller**
+Chatbot berbasis AI yang berperan sebagai tetua Batak yang bijak. Didukung oleh knowledge base mendalam untuk memastikan akurasi informasi, serta Prompt Guard untuk mencegah serangan prompt injection.
 
-### Backend & AI
-- **Database**: [Supabase](https://supabase.com/) (PostgreSQL, Auth, Storage)
-- **AI Inference**: [Groq](https://groq.com/) (Llama 3.1-8b-instant)
-- **State Management**: [Zustand](https://github.com/pmndrs/zustand)
+🛒 **Marketplace Terintegrasi**
+Fitur pembelian produk kuliner tradisional dengan deep link ke WhatsApp.
+
+🧭 **Kompas & Dukungan Gyroscope**
+Kompas digital untuk orientasi dalam mode 360°, serta dukungan gyroscope pada perangkat mobile untuk pengalaman yang lebih natural — cukup gerakkan ponsel untuk melihat sekeliling.
+
+💃 **Video Panorama 360° Tari Tor-Tor**
+Pengalaman imersif menonton pertunjukan tari tradisional Batak dalam format video 360°, membuat pengguna seolah-olah berada di tengah-tengah upacara adat.
+
+🎸 **Model 3D Alat Musik Hasapi**
+Pengguna dapat melihat dan berinteraksi dengan model 3D Hasapi (alat musik tradisional Batak) secara detail dari berbagai sudut pandang.
+
+🎮 **Sistem Gamifikasi**
+Progress tracking dengan pencapaian (achievements), paspor budaya, dan leaderboard untuk meningkatkan engagement pengguna.
+
+🔐 **Autentikasi Pengguna**
+Login dengan Supabase Auth untuk menyimpan progress eksplorasi secara permanen.
+
+## 🛠️ Teknologi yang Digunakan
+
+### Frontend
+| Technology | Purpose |
+|------------|---------|
+| Next.js 14 (App Router) | React framework dengan SSR |
+| TypeScript | Type-safe development |
+| Tailwind CSS | Utility-first styling |
+| Framer Motion | Smooth animations |
+
+### 3D Engine
+| Technology | Purpose |
+|------------|---------|
+| React-Three-Fiber | React renderer untuk Three.js |
+| @react-three/drei | Useful helpers untuk R3F |
+
+### 360° Viewer
+| Technology | Purpose |
+|------------|---------|
+| PhotoSphereViewer | Core panorama engine |
+| Virtual Tour Plugin | Node-based navigation |
+| Markers Plugin | Interactive glowmarks |
+| Gyroscope Plugin | Mobile orientation support |
+
+### AI Layer
+| Technology | Purpose |
+|------------|---------|
+| Groq SDK | Fast LLM inference |
+| Llama 3.3 70B | Main language model |
+| Prompt Guard (llama-prompt-guard-2-86m) | Input safety filtering |
+| Knowledge Base | 25 landmark-specific files |
+
+### Database
+| Technology | Purpose |
+|------------|---------|
+| Supabase | PostgreSQL + Auth + Storage |
 
 ## 📂 Project Structure
 
 ```
 src/
 ├── app/
-│   ├── page.tsx            # Main Entry (Handles View Modes: 3D / 360 / Static)
+│   ├── page.tsx            # Main Entry (3D / 360 / Static modes)
 │   └── api/                # Server Actions & API Routes
 ├── components/
-│   ├── canvas/             # R3F 3D Components (SkyIsland, Atmosphere)
-│   ├── explore/            # 360 Viewer Components (PanoramaViewer)
-│   ├── ui/                 # UI Elements (Sidebar, NPCModal, HUD)
+│   ├── canvas/             # R3F 3D Components
+│   ├── explore/            # 360 Viewer Components
+│   ├── ui/                 # UI Elements
 │   └── viewer/             # Shared Viewer Logic
 ├── lib/
 │   ├── supabase.ts         # Database Client
-│   └── mockProducts.ts     # Marketplace Data
-└── store/                  # Global State (Zustand)
+│   └── knowledge.ts        # AI Knowledge Loader
+├── services/
+│   ├── ProgressService.ts  # Progress sync
+│   └── AchievementService.ts # Achievement logic
+└── store/
+    └── useAppStore.ts      # Zustand global state
+
+knowledge/                   # AI Knowledge Base
+├── opung-skills.md         # Agent persona
+├── glossary.md             # Term translations
+└── landmarks/              # 25 detailed landmark files
 ```
 
 ## 🚀 Getting Started
@@ -67,44 +113,38 @@ src/
 
 ### Installation
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/yourusername/samosir-verse.git
-   cd samosir-verse
-   ```
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/samosir-verse.git
+cd samosir-verse
 
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
+# Install dependencies
+npm install
 
-3. **Environment Setup**
-   Create a `.env.local` file in the root directory:
-   ```env
-   NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-   GROQ_API_KEY=your_groq_api_key
-   ```
+# Create .env.local
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+GROQ_API_KEY=your_groq_api_key
 
-4. **Run the development server**
-   ```bash
-   npm run dev
-   ```
+# Run development server
+npm run dev
+```
 
-5. **Open the app**
-   Visit [http://localhost:3000](http://localhost:3000) to start exploring.
+Visit [http://localhost:3000](http://localhost:3000) to start exploring.
 
 ## 🧠 AI Architecture
 
-The "Opung" persona is designed to be a **Deterministic Cultural Storyteller**.
-- **System Prompt**: Enforces a specific persona (Batak Elder) and strict negative constraints (e.g., "Do not invent facts", "Do not confuse cultures").
-- **Context Injection**:
-  1. **User's Active Lens**: (e.g., "Food" lens makes Opung talk about taste and memories).
-  2. **Landmark Fact Sheet**: Hardcoded "Ground Truth" text injected into the prompt to ensure accuracy.
+The "Opung" persona is a **Deterministic Cultural Storyteller**:
+
+- **Prompt Guard**: Filters malicious/off-topic inputs
+- **Knowledge Base**: 25 files × ~1000 words each for grounded responses
+- **Context Injection**: Active filters + landmark facts injected per request
+- **Trilingual**: English, Indonesian, and Batak Toba support
 
 ## 🤝 Contributing
 
 We welcome contributions that respect the cultural integrity of the project.
+
 1. Fork the Project
 2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
 3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)

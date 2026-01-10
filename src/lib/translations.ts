@@ -158,6 +158,28 @@ export const translations = {
       bt: '/ porsi',
     },
   },
+  quiz: {
+    title: {
+      en: 'Take Quiz',
+      id: 'Ikuti Kuis',
+      bt: 'Ikuti Kuis',
+    },
+    question: {
+      en: 'Question',
+      id: 'Pertanyaan',
+      bt: 'Sungkun',
+    },
+    correct: {
+      en: 'Correct!',
+      id: 'Benar!',
+      bt: 'Tutu!',
+    },
+    incorrect: {
+      en: 'Incorrect',
+      id: 'Salah',
+      bt: 'Sala',
+    },
+  },
   compass: {
     north: { en: 'N', id: 'U', bt: 'U' },
     east: { en: 'E', id: 'T', bt: 'T' },

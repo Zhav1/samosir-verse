@@ -519,3 +519,128 @@ knowledge/                  # ← NEW: Root-level knowledge base
 □ Live testing of chat functionality
 □ Prompt injection testing
 □ Performance monitoring of cache hit rates
+
+---
+
+## 20. Phase 7: Gamification System (Added: 2026-01-10)
+
+### 20.1 Architecture Overview
+
+The gamification system provides progress tracking, achievements, and user authentication.
+
+**Key Components**:
+- `useAppStore.ts` - Zustand store with progress state
+- `ProgressService.ts` - Server sync logic
+- `AchievementService.ts` - Achievement unlock logic
+- `GamificationProvider.tsx` - React context wrapper
+- `ProgressBarFloating.tsx` - HUD progress display
+- `CulturalPassport.tsx` - Progress visualization modal
+- `ProgressPanel.tsx` - Detailed stats panel
+
+### 20.2 Database Schema
+
+```sql
+-- Table: user_progress
+CREATE TABLE user_progress (
+    id UUID PRIMARY KEY,
+    user_id UUID,                    -- For authenticated users
+    anonymous_id TEXT,               -- For anonymous users
+    visited_landmarks TEXT[],        -- Array of landmark UUIDs
+    achievements TEXT[],             -- Array of achievement IDs
+    quiz_scores JSONB,
+    opung_chat_count INT,
+    last_sync_at TIMESTAMPTZ
+);
+```
+
+### 20.3 Progress Tracking Flow
+
+**Anonymous Users**:
+1. Progress stored in localStorage via Zustand persist
+2. Anonymous ID generated on first visit
+3. Optional: synced to Supabase `user_progress` table
+
+**Authenticated Users**:
+1. On login: local progress REPLACED with server data (not merged)
+2. On landmark visit: `markLandmarkVisited()` → `syncProgressToServer()`
+3. On logout: `resetProgress()` + clear localStorage + page reload
+
+### 20.4 Critical Implementation: Login/Logout
+
+**Login Flow** (`GamificationProvider.tsx`):
+```typescript
+if (event === 'SIGNED_IN') {
+    await migrateAnonymousProgress(session.user.id);
+    await loadProgressFromServer();  // REPLACE, not merge
+}
+```
+
+**Logout Flow** (`GamificationProvider.tsx` + `ProgressPanel.tsx`):
+```typescript
+if (event === 'SIGNED_OUT') {
+    useAppStore.getState().resetProgress();  // Clear all state
+    localStorage.removeItem('samosir360-storage');  // Clear persistence
+}
+```
+
+**Important**: `replaceWithServerProgress()` uses `setProgress()` for atomic replacement instead of the old `mergeServerProgress()` (which did UNION).
+
+### 20.5 Achievement System
+
+**Categories**:
+- Explorer achievements (visit X landmarks)
+- Category mastery (complete a category)
+- Engagement (chat with Opung, take quizzes)
+
+**Unlock Trigger**:
+Progress is tracked when user clicks "Masuk Tampilan" button in `SkyIsland.tsx`, NOT when clicking the glowmark.
+
+### 20.6 State Management Functions
+
+```typescript
+// useAppStore.ts
+markLandmarkVisited(id: string)     // Add to visited array
+unlockAchievement(id: string)       // Add to achievements
+resetProgress()                     // Clear all (logout)
+setProgress(data)                   // Atomic replacement (login)
+```
+
+### 20.7 UI Components
+
+| Component | Location | Purpose |
+|-----------|----------|---------|
+| `ProgressBarFloating` | Bottom-left | Collapsed progress HUD |
+| `ProgressPanel` | Floating modal | Detailed stats + logout |
+| `CulturalPassport` | Modal | Visual progress by category |
+| `AchievementToast` | Top-right | Unlock notifications |
+
+### 20.8 Mobile Responsiveness
+
+**Masuk Tampilan Button**:
+- Desktop: `bottom-24`, auto-width
+- Mobile: `bottom-32`, `max-w-[90%]`, centered via `inset-x-0 flex justify-center`
+
+---
+
+## 21. Phase 7 Progress Log (Updated: 2026-01-10)
+
+### Completed:
+✔ Zustand store with gamification state
+✔ `ProgressService.ts` with sync logic
+✔ `AchievementService.ts` with unlock logic  
+✔ `GamificationProvider.tsx` context
+✔ `ProgressBarFloating.tsx` HUD
+✔ `CulturalPassport.tsx` modal
+✔ `ProgressPanel.tsx` with logout
+✔ SQL migration for `user_progress` table
+✔ Login flow: REPLACE not MERGE
+✔ Logout flow: resetProgress + clear localStorage
+✔ Progress sync on "Masuk Tampilan" click
+✔ Mobile responsive button positioning
+✔ Authentication modal integration
+
+### Pending:
+□ Run SQL migration in Supabase
+□ Test complete login/logout/progress flow
+□ Achievement toast animations
+□ Quiz integration
