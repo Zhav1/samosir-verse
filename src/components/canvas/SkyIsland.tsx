@@ -154,7 +154,8 @@ export function SkyIsland() {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: 20 }}
-                        className="absolute bottom-32 sm:bottom-24 inset-x-0 z-20 flex justify-center px-4"
+                        className="absolute inset-x-0 z-20 flex justify-center px-4"
+                        style={{ bottom: 'calc(8rem + env(safe-area-inset-bottom, 0px))' }}
                     >
                         {isCameraAnimating ? (
                             <div className="flex items-center gap-3 px-4 sm:px-6 py-2 sm:py-3 bg-black/50 backdrop-blur-md border border-white/10 rounded-full text-white/80 shadow-lg">

@@ -39,7 +39,8 @@ export function ProgressBarFloating({ onOpenPassport, onOpenPanel }: ProgressBar
             initial={{ y: 100, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 1, type: 'spring' }}
-            className="fixed bottom-4 left-1/2 -translate-x-1/2 md:left-4 md:translate-x-0 z-50"
+            className="fixed left-1/2 -translate-x-1/2 md:left-4 md:translate-x-0 z-50"
+            style={{ bottom: 'calc(1rem + env(safe-area-inset-bottom, 0px))' }}
             onMouseEnter={() => setIsExpanded(true)}
             onMouseLeave={() => setIsExpanded(false)}
         >

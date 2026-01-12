@@ -94,7 +94,7 @@ export function AchievementToast() {
                     {/* Toast content */}
                     <div className="relative bg-gradient-to-r from-amber-500/90 to-yellow-500/90 
                                     backdrop-blur-md rounded-2xl shadow-2xl border border-yellow-300/50
-                                    px-6 py-4 min-w-[320px] max-w-[400px]">
+                                    px-4 py-3 sm:px-6 sm:py-4 min-w-[280px] sm:min-w-[320px] max-w-[90vw] sm:max-w-[400px]">
                         {/* Glow effect */}
                         <div className="absolute inset-0 rounded-2xl bg-yellow-400/20 blur-xl -z-10" />
 
@@ -107,7 +107,7 @@ export function AchievementToast() {
                             <X size={16} className="text-yellow-900" />
                         </button>
 
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-3 sm:gap-4">
                             {/* Icon */}
                             <motion.div
                                 initial={{ rotate: -180, scale: 0 }}
@@ -115,8 +115,8 @@ export function AchievementToast() {
                                 transition={{ type: 'spring', delay: 0.2 }}
                                 className="relative"
                             >
-                                <div className="w-16 h-16 rounded-full bg-white/30 
-                                                flex items-center justify-center text-4xl
+                                <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-white/30 
+                                                flex items-center justify-center text-2xl sm:text-4xl
                                                 shadow-inner">
                                     {definition.icon}
                                 </div>
@@ -125,24 +125,24 @@ export function AchievementToast() {
                                     transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
                                     className="absolute -top-1 -right-1"
                                 >
-                                    <Sparkles size={20} className="text-yellow-200" />
+                                    <Sparkles size={16} className="sm:w-5 sm:h-5 text-yellow-200" />
                                 </motion.div>
                             </motion.div>
 
                             {/* Text */}
-                            <div className="flex-1">
-                                <div className="flex items-center gap-2 text-yellow-900/80 text-sm font-medium">
-                                    <Trophy size={14} />
+                            <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-1.5 sm:gap-2 text-yellow-900/80 text-xs sm:text-sm font-medium">
+                                    <Trophy size={12} className="sm:w-3.5 sm:h-3.5" />
                                     <span>
                                         {language === 'id' || language === 'bt'
                                             ? 'Pencapaian Terbuka!'
                                             : 'Achievement Unlocked!'}
                                     </span>
                                 </div>
-                                <h3 className="text-xl font-bold text-yellow-900 mt-1">
+                                <h3 className="text-base sm:text-xl font-bold text-yellow-900 mt-0.5 sm:mt-1 truncate">
                                     {title}
                                 </h3>
-                                <p className="text-sm text-yellow-900/70">
+                                <p className="text-xs sm:text-sm text-yellow-900/70 line-clamp-2">
                                     {description}
                                 </p>
                             </div>
