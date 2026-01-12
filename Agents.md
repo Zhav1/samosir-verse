@@ -644,3 +644,80 @@ setProgress(data)                   // Atomic replacement (login)
 □ Test complete login/logout/progress flow
 □ Achievement toast animations
 □ Quiz integration
+
+---
+
+## 22. Phase 8: AI Model Fallback & Mobile UI Polish (Added: 2026-01-13)
+
+### 22.1 4-Stage AI Model Fallback System
+
+**Location**: `src/lib/aiModels.ts`
+
+The AI system now uses a 4-stage fallback chain for maximum reliability:
+
+| Stage | Model | Params | TPM | Purpose |
+|-------|-------|--------|-----|---------|
+| **PRIMARY** | `llama-3.3-70b-versatile` | 70B | 12K | Best quality, persona consistency |
+| **FALLBACK** | `openai/gpt-oss-120b` | 120B | 8K | Most knowledge, low hallucination |
+| **TERTIARY** | `llama-4-scout-17b-16e-instruct` | 17B MoE | 30K | Fast, handles 10-20K token usage |
+| **EMERGENCY** | `groq/compound` | Compound | 70K | Guaranteed availability |
+
+**Why these models?**
+- **gpt-oss-120b**: Largest model (120B) = least hallucination for cultural facts
+- **llama-4-scout**: MoE architecture (16 experts) = fast inference, 30K TPM handles burst traffic
+- **groq/compound**: 70K TPM = essentially never rate-limited
+
+**Error patterns that trigger fallback**:
+- `rate_limit`, `tokens`, `exhausted`, `quota`, `capacity`, `overloaded`, `503`, `429`
+
+### 22.2 Mobile UI Responsive Fixes
+
+**Progress Indicator (`ProgressBarFloating.tsx`)**:
+- 3D Island (desktop): Bottom-left
+- 360 Panorama (desktop): Bottom-center
+- Mobile (all views): Bottom-center with `safe-area-inset-bottom`
+- Hides when NPC chat modal is open in 360/static views
+
+**Achievement Banner (`AchievementToast.tsx`)**:
+- Container uses `inset-x-0 flex justify-center` for true centering
+- Added `safe-area-inset-top` for notch devices
+- Removed `truncate` from title to prevent text cutoff
+
+**Quiz Modal (`QuizModal.tsx`)**:
+- Added `max-h-[90vh]` for viewport-constrained height
+- Content area scrollable with `overflow-y-auto`
+- Header fixed with `flex-shrink-0`
+
+**Volume Control (`VolumeControl.tsx`)**:
+- Mobile: Stacked under chat button (top-right)
+- Desktop: Bottom-right (original position)
+
+### 22.3 JSON Parsing Error Handling
+
+**Location**: `src/app/api/chat/story/route.ts`
+
+Added try-catch around `request.json()` to handle malformed requests gracefully:
+
+```typescript
+try {
+    body = await request.json();
+} catch {
+    return NextResponse.json({ 
+        message: "Horas! I couldn't understand your request...",
+        emotion: "warm" 
+    }, { status: 400 });
+}
+```
+
+### 22.4 Phase 8 Progress Log
+
+**Completed**:
+✔ 4-stage AI model fallback implemented
+✔ Progress indicator position viewMode-aware
+✔ Achievement banner centering fixed
+✔ Quiz modal scrollable on mobile
+✔ Volume control stacked on mobile
+✔ JSON parsing error handling added
+✔ AI usage logging includes model name
+
+**All models support JSON mode** (`response_format: { type: "json_object" }`).

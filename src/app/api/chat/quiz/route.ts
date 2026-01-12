@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import Groq from "groq-sdk";
 import { buildEnhancedContext, getOpungSkills } from "@/lib/knowledge";
 import { checkRateLimit, getRateLimitHeaders } from "@/lib/rateLimit";
+import { createChatCompletionWithFallback } from "@/lib/aiModels";
 
 const groq = new Groq({
     apiKey: process.env.GROQ_API_KEY,
@@ -92,32 +93,27 @@ IMPORTANT: Output MUST be valid JSON in this exact format:
     ]
 }`;
 
-        const completion = await groq.chat.completions.create({
+        // Use fallback-enabled completion
+        const result = await createChatCompletionWithFallback(groq, {
             messages: [
                 { role: "system", content: systemPrompt },
                 { role: "user", content: `Create a cultural quiz about ${landmarkTitle}` }
             ],
-            model: "llama-3.3-70b-versatile",
             temperature: 0.7,
             max_tokens: 1500,
             response_format: { type: "json_object" },
         });
 
-        const responseContent = completion.choices[0]?.message?.content;
-
-        if (!responseContent) {
-            throw new Error("No response from AI");
-        }
-
         // Log usage
-        if (completion.usage) {
+        if (result.usage) {
             console.log('[Quiz Usage]', {
                 landmark: landmarkTitle,
-                totalTokens: completion.usage.total_tokens,
+                model: result.model,
+                totalTokens: result.usage.total_tokens,
             });
         }
 
-        const parsedResponse = JSON.parse(responseContent);
+        const parsedResponse = JSON.parse(result.content);
 
         // Validate response structure
         if (!parsedResponse.questions || !Array.isArray(parsedResponse.questions)) {

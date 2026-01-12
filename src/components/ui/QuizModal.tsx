@@ -167,11 +167,11 @@ export function QuizModal({ isOpen, onClose, landmark }: QuizModalProps) {
                     onClick={e => e.stopPropagation()}
                     className="bg-slate-900/95 backdrop-blur-xl rounded-2xl
                                border border-white/10 shadow-2xl
-                               w-full max-w-lg overflow-hidden"
+                               w-full max-w-lg max-h-[90vh] overflow-hidden flex flex-col"
                 >
                     {/* Header */}
                     <div className="bg-gradient-to-r from-purple-600/20 to-blue-600/20 
-                                    border-b border-white/10 p-4 flex items-center justify-between">
+                                    border-b border-white/10 p-4 flex items-center justify-between flex-shrink-0">
                         <div className="flex items-center gap-3">
                             <div className="p-2 bg-purple-500/20 rounded-lg">
                                 <Brain size={24} className="text-purple-400" />
@@ -195,8 +195,8 @@ export function QuizModal({ isOpen, onClose, landmark }: QuizModalProps) {
                         </button>
                     </div>
 
-                    {/* Content */}
-                    <div className="p-6">
+                    {/* Content - Scrollable */}
+                    <div className="p-6 flex-1 overflow-y-auto">
                         {/* Loading state */}
                         {isLoading && (
                             <div className="flex flex-col items-center justify-center py-12">

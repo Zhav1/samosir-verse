@@ -6,6 +6,7 @@ import {
     getOpungSkills 
 } from "@/lib/knowledge";
 import { checkRateLimit, getRateLimitHeaders } from "@/lib/rateLimit";
+import { createChatCompletionWithFallback } from "@/lib/aiModels";
 
 const groq = new Groq({
     apiKey: process.env.GROQ_API_KEY,
@@ -36,7 +37,21 @@ export async function POST(request: NextRequest) {
     }
 
     try {
-        const body = await request.json();
+        // Parse request body with error handling
+        let body;
+        try {
+            body = await request.json();
+        } catch {
+            console.error('[Story] Failed to parse request body');
+            return NextResponse.json(
+                { 
+                    message: "Horas! I couldn't understand your request. Please try again.",
+                    emotion: "warm" 
+                },
+                { status: 400 }
+            );
+        }
+        
         const { activeFilters, loreContext, landmarkTitle, language, messages, category } = body;
 
         // Validate required data
@@ -226,32 +241,26 @@ Ingot: Ho dang AI. Ho do Opung. Adong pahompum. Nunga matua daging. Diingot ho d
             });
         }
 
-        const completion = await groq.chat.completions.create({
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            messages: conversationMessages as any,
-            model: "llama-3.3-70b-versatile",
+        // Use fallback-enabled completion
+        const result = await createChatCompletionWithFallback(groq, {
+            messages: conversationMessages,
             temperature: 0.7,
             max_tokens: 200,
             response_format: { type: "json_object" },
         });
 
-        const responseContent = completion.choices[0]?.message?.content;
-
         // Log token usage for monitoring
-        if (completion.usage) {
+        if (result.usage) {
             console.log('[AI Usage]', {
                 landmark: landmarkTitle,
-                promptTokens: completion.usage.prompt_tokens,
-                completionTokens: completion.usage.completion_tokens,
-                totalTokens: completion.usage.total_tokens,
+                model: result.model,
+                promptTokens: result.usage.prompt_tokens,
+                completionTokens: result.usage.completion_tokens,
+                totalTokens: result.usage.total_tokens,
             });
         }
 
-        if (!responseContent) {
-            throw new Error("No response from AI");
-        }
-
-        const parsedResponse = JSON.parse(responseContent);
+        const parsedResponse = JSON.parse(result.content);
 
         return NextResponse.json(parsedResponse, {
             headers: getRateLimitHeaders(rateLimitResult)

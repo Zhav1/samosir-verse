@@ -5,6 +5,10 @@
  * 
  * Compact floating indicator showing exploration progress.
  * Expands on hover to show more details. Click opens full panel.
+ * 
+ * UX Behavior:
+ * - 3D Island view: Bottom center on mobile
+ * - 360 Panorama view: Hidden when chat modal is open
  */
 
 import { useState } from 'react';
@@ -23,8 +27,11 @@ export function ProgressBarFloating({ onOpenPassport, onOpenPanel }: ProgressBar
     const visitedLandmarks = useAppStore(state => state.visitedLandmarks);
     const achievements = useAppStore(state => state.achievements);
     const language = useAppStore(state => state.language);
+    const viewMode = useAppStore(state => state.viewMode);
+    const isNPCModalOpen = useAppStore(state => state.isNPCModalOpen);
 
-    console.log('[ProgressBarFloating] Rendering with visitedLandmarks:', visitedLandmarks);
+    // Hide in 360 panorama when chat modal is open
+    const shouldHide = (viewMode === '360-panorama' || viewMode === 'static-image') && isNPCModalOpen;
 
     const visitedCount = visitedLandmarks.length;
     const totalLandmarks = 25;
@@ -34,13 +41,25 @@ export function ProgressBarFloating({ onOpenPassport, onOpenPanel }: ProgressBar
         return language === 'id' || language === 'bt' ? id : en;
     };
 
+    // Don't render if should be hidden
+    if (shouldHide) return null;
+
+    // Position logic:
+    // - 3D Island view (desktop): bottom-left (original good position)
+    // - 360 Panorama view (desktop): bottom-center (avoid compass on left, volume on right)
+    // - Mobile (all views): bottom-center with safe-area
+    const is3DView = viewMode === '3d-sky' || viewMode === '3d-focused';
+
     return (
         <motion.div
             initial={{ y: 100, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 1, type: 'spring' }}
-            className="fixed left-1/2 -translate-x-1/2 md:left-4 md:translate-x-0 z-50"
-            style={{ bottom: 'calc(1rem + env(safe-area-inset-bottom, 0px))' }}
+            className={`fixed z-50 ${is3DView
+                    ? 'left-1/2 -translate-x-1/2 md:left-4 md:translate-x-0' // 3D: left on desktop, center on mobile
+                    : 'left-1/2 -translate-x-1/2' // 360: always center
+                }`}
+            style={{ bottom: 'calc(1.5rem + env(safe-area-inset-bottom, 0px))' }}
             onMouseEnter={() => setIsExpanded(true)}
             onMouseLeave={() => setIsExpanded(false)}
         >

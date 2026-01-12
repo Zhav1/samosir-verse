@@ -60,7 +60,8 @@ export function AchievementToast() {
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: -50, scale: 0.9 }}
                     transition={{ type: 'spring', damping: 15, stiffness: 300 }}
-                    className="fixed top-4 left-1/2 -translate-x-1/2 z-[100] pointer-events-auto"
+                    className="fixed inset-x-0 z-[100] pointer-events-auto flex justify-center px-4"
+                    style={{ top: 'calc(1rem + env(safe-area-inset-top, 0px))' }}
                 >
                     {/* Confetti particles */}
                     <div className="absolute inset-0 pointer-events-none">
@@ -139,7 +140,7 @@ export function AchievementToast() {
                                             : 'Achievement Unlocked!'}
                                     </span>
                                 </div>
-                                <h3 className="text-base sm:text-xl font-bold text-yellow-900 mt-0.5 sm:mt-1 truncate">
+                                <h3 className="text-base sm:text-xl font-bold text-yellow-900 mt-0.5 sm:mt-1">
                                     {title}
                                 </h3>
                                 <p className="text-xs sm:text-sm text-yellow-900/70 line-clamp-2">

@@ -72,15 +72,21 @@ function HomeContent() {
                 <PanoramaViewer />
               </div>
 
-              {/* Floating Chat Button - Only visible when NPC Modal is closed AND no item detail is open */}
+              {/* Floating Chat Button + Volume Control - Stacked on mobile */}
               {!isNPCModalOpen && !itemDetailId && (
-                <button
-                  onClick={() => setNPCModalOpen(true)}
-                  className="fixed top-5 right-5 z-[60] p-3 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 shadow-lg transition-all duration-300 hover:scale-110 group"
-                  aria-label="Open Chat"
-                >
-                  <MessageCircle className="w-6 h-6 text-white group-hover:text-amber-400 transition-colors" />
-                </button>
+                <div className="fixed top-5 right-5 z-[60] flex flex-col gap-2">
+                  <button
+                    onClick={() => setNPCModalOpen(true)}
+                    className="p-3 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 shadow-lg transition-all duration-300 hover:scale-110 group"
+                    aria-label="Open Chat"
+                  >
+                    <MessageCircle className="w-6 h-6 text-white group-hover:text-amber-400 transition-colors" />
+                  </button>
+                  {/* Volume Control - Under chat on mobile, bottom-right on desktop */}
+                  <div className="md:hidden">
+                    <VolumeControl />
+                  </div>
+                </div>
               )}
             </div>
 
@@ -92,8 +98,8 @@ function HomeContent() {
               <ReturnToSkyButton />
             </div>
 
-            {/* Volume Control */}
-            <div className="fixed bottom-6 right-6 z-50 ">
+            {/* Volume Control - Desktop only (bottom-right) */}
+            <div className="hidden md:block fixed bottom-6 right-6 z-50">
               <VolumeControl />
             </div>
           </ErrorBoundary>
@@ -109,15 +115,21 @@ function HomeContent() {
                 <StaticImageViewer />
               </div>
 
-              {/* Floating Chat Button - Only visible when NPC Modal is closed AND no item detail is open */}
+              {/* Floating Chat Button + Volume Control - Stacked on mobile */}
               {!isNPCModalOpen && !itemDetailId && (
-                <button
-                  onClick={() => setNPCModalOpen(true)}
-                  className="fixed top-4 right-16 md:right-4 z-[60] p-3 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 shadow-lg transition-all duration-300 hover:scale-110 group"
-                  aria-label="Open Chat"
-                >
-                  <MessageCircle className="w-6 h-6 text-white group-hover:text-amber-400 transition-colors" />
-                </button>
+                <div className="fixed top-5 right-5 z-[60] flex flex-col gap-2">
+                  <button
+                    onClick={() => setNPCModalOpen(true)}
+                    className="p-3 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 shadow-lg transition-all duration-300 hover:scale-110 group"
+                    aria-label="Open Chat"
+                  >
+                    <MessageCircle className="w-6 h-6 text-white group-hover:text-amber-400 transition-colors" />
+                  </button>
+                  {/* Volume Control - Under chat on mobile */}
+                  <div className="md:hidden">
+                    <VolumeControl />
+                  </div>
+                </div>
               )}
             </div>
 
@@ -129,8 +141,8 @@ function HomeContent() {
               <ReturnToSkyButton />
             </div>
 
-            {/* Volume Control */}
-            <div className="fixed bottom-6 right-6 z-50">
+            {/* Volume Control - Desktop only (bottom-right) */}
+            <div className="hidden md:block fixed bottom-6 right-6 z-50">
               <VolumeControl />
             </div>
           </ErrorBoundary>
