@@ -129,6 +129,16 @@ interface AppState {
     isAuthModalOpen: boolean;
     setAuthModalOpen: (isOpen: boolean) => void;
     
+    // ============================================================
+    // CHAT HISTORY CACHE (Token Optimization)
+    // ============================================================
+    
+    // Chat history keyed by landmarkId to preserve conversations
+    chatHistory: Record<string, { role: "user" | "assistant"; content: string }[]>;
+    getChatHistory: (landmarkId: string) => { role: "user" | "assistant"; content: string }[];
+    setChatHistory: (landmarkId: string, messages: { role: "user" | "assistant"; content: string }[]) => void;
+    clearChatHistory: (landmarkId: string) => void;
+    
     // Reset all progress (call on logout)
     resetProgress: () => void;
     
@@ -292,6 +302,26 @@ export const useAppStore = create<AppState>()(
             isAuthModalOpen: false,
             setAuthModalOpen: (isOpen) => set({ isAuthModalOpen: isOpen }),
             
+            // ============================================================
+            // CHAT HISTORY CACHE IMPLEMENTATION (Token Optimization)
+            // ============================================================
+            
+            chatHistory: {},
+            getChatHistory: (landmarkId) => {
+                return get().chatHistory[landmarkId] || [];
+            },
+            setChatHistory: (landmarkId, messages) => set((state) => ({
+                chatHistory: {
+                    ...state.chatHistory,
+                    [landmarkId]: messages
+                }
+            })),
+            clearChatHistory: (landmarkId) => set((state) => {
+                const newHistory = { ...state.chatHistory };
+                delete newHistory[landmarkId];
+                return { chatHistory: newHistory };
+            }),
+            
             // Reset all progress (call on logout)
             resetProgress: () => set({
                 visitedLandmarks: [],
@@ -302,6 +332,7 @@ export const useAppStore = create<AppState>()(
                 anonymousId: null, // Will regenerate on next visit
                 userId: null,
                 userEmail: null,
+                chatHistory: {}, // Also clear chat history on logout
             }),
             
             // Set progress atomically (REPLACE, not merge - for loading from server)

@@ -2,7 +2,7 @@
 
 import { useEffect, useState, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, ShoppingBag, Send } from "lucide-react";
+import { X, ShoppingBag, Send, RefreshCw } from "lucide-react";
 import { useAppStore } from "@/store/useAppStore";
 import { useTypewriter } from "@/hooks/useTypewriter";
 import { getProductsByCategory, Product } from "@/lib/mockProducts";
@@ -18,15 +18,37 @@ import Opung3D from "../canvas/Opung3D";
 type Emotion = "happy" | "mysterious" | "serious";
 
 export function NPCModal() {
-    const { isNPCModalOpen, setNPCModalOpen, currentLandmark, activeFilters, incrementOpungChat } = useAppStore();
-    // Chat state
-    const [messages, setMessages] = useState<{ role: "user" | "assistant"; content: string }[]>([]);
+    const {
+        isNPCModalOpen,
+        setNPCModalOpen,
+        currentLandmark,
+        activeFilters,
+        incrementOpungChat,
+        getChatHistory,
+        setChatHistory,
+        clearChatHistory
+    } = useAppStore();
+    // Chat state - Use local state that syncs with Zustand cache
+    const [messages, setMessagesLocal] = useState<{ role: "user" | "assistant"; content: string }[]>([]);
     const [currentResponse, setCurrentResponse] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [input, setInput] = useState("");
     const [emotion, setEmotion] = useState<Emotion>("happy");
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
     const [isProductModalOpen, setIsProductModalOpen] = useState(false);
+    const [hasLoadedFromCache, setHasLoadedFromCache] = useState(false);
+
+    // Wrapper to sync messages with Zustand cache
+    const setMessages = (newMessages: { role: "user" | "assistant"; content: string }[] | ((prev: { role: "user" | "assistant"; content: string }[]) => { role: "user" | "assistant"; content: string }[])) => {
+        setMessagesLocal((prev) => {
+            const updated = typeof newMessages === 'function' ? newMessages(prev) : newMessages;
+            // Sync to Zustand cache if we have a landmark
+            if (currentLandmark?.id && updated.length > 0) {
+                setChatHistory(currentLandmark.id, updated);
+            }
+            return updated;
+        });
+    };
 
     const { t } = useTranslation();
 
@@ -43,11 +65,29 @@ export function NPCModal() {
             ? getProductsByCategory(currentLandmark.category)
             : [];
 
-    const fetchStory = async () => {
+    const fetchStory = async (forceRefresh = false) => {
         if (!currentLandmark) return;
 
+        // Check for cached chat history first (unless forcing refresh)
+        if (!forceRefresh && !hasLoadedFromCache) {
+            const cachedHistory = getChatHistory(currentLandmark.id);
+            if (cachedHistory.length > 0) {
+                setMessagesLocal(cachedHistory);
+                setCurrentResponse(cachedHistory[cachedHistory.length - 1]?.role === 'assistant'
+                    ? cachedHistory[cachedHistory.length - 1].content
+                    : '');
+                setHasLoadedFromCache(true);
+                return; // Use cached history, don't call API
+            }
+        }
+
         setIsLoading(true);
-        setMessages([]); // Reset messages on new landmark
+        if (forceRefresh) {
+            setMessagesLocal([]); // Only reset if force refreshing
+            if (currentLandmark?.id) {
+                clearChatHistory(currentLandmark.id);
+            }
+        }
         setCurrentResponse("");
 
         try {
@@ -89,16 +129,16 @@ export function NPCModal() {
     // Fetch story from AI when modal opens
     useEffect(() => {
         if (isNPCModalOpen && currentLandmark) {
+            setHasLoadedFromCache(false); // Reset flag when landmark changes
             fetchStory();
         }
-        // Reset when modal closes
+        // Only reset input when modal closes (preserve messages in cache)
         if (!isNPCModalOpen) {
-            setMessages([]);
-            setCurrentResponse("");
             setInput("");
+            setHasLoadedFromCache(false);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isNPCModalOpen, currentLandmark]);
+    }, [isNPCModalOpen, currentLandmark?.id]);
 
 
     const handleProductClick = (product: Product) => {
@@ -172,7 +212,13 @@ export function NPCModal() {
                         animate={{ x: 0 }}
                         exit={{ x: "100%" }}
                         transition={{ type: "spring", damping: 30, stiffness: 300 }}
-                        className="fixed top-0 right-0 h-screen w-full max-w-md z-50 bg-black border-l border-white/10 shadow-2xl overflow-y-auto"
+                        className="fixed top-0 right-0 h-screen w-full max-w-md z-50 bg-black border-l border-white/10 shadow-2xl overflow-y-auto overscroll-contain"
+                        style={{
+                            WebkitOverflowScrolling: 'touch',
+                            touchAction: 'pan-y',
+                            overscrollBehavior: 'contain'
+                        }}
+                        onTouchMove={(e) => e.stopPropagation()}
                     >
                         {/* Glass morphism overlay */}
                         <div className="absolute inset-0 bg-gradient-to-br from-black/95 via-black/90 to-black/95 backdrop-blur-xl" />
@@ -358,15 +404,26 @@ export function NPCModal() {
                                         {isLoading ? <LocalizedText text={t('npc.listening')} /> : <LocalizedText text={t('npc.poweredBy')} />}
                                     </div>
                                     {/* Quiz Trigger Button */}
-                                    <button
-                                        onClick={() => {
-                                            setNPCModalOpen(false);
-                                            useAppStore.getState().setQuizModalOpen(true);
-                                        }}
-                                        className="text-xs text-purple-400 hover:text-purple-300 flex items-center gap-1 transition-colors"
-                                    >
-                                        🧠 {t('quiz.title') || 'Take Quiz'}
-                                    </button>
+                                    <div className="flex items-center gap-3">
+                                        {/* New Conversation Button */}
+                                        <button
+                                            onClick={() => fetchStory(true)}
+                                            disabled={isLoading}
+                                            className="text-xs text-amber-400/70 hover:text-amber-400 flex items-center gap-1 transition-colors disabled:opacity-50"
+                                            title="Start new conversation"
+                                        >
+                                            <RefreshCw className="w-3 h-3" />
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                setNPCModalOpen(false);
+                                                useAppStore.getState().setQuizModalOpen(true);
+                                            }}
+                                            className="text-xs text-purple-400 hover:text-purple-300 flex items-center gap-1 transition-colors"
+                                        >
+                                            🧠 {t('quiz.title') || 'Take Quiz'}
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
 

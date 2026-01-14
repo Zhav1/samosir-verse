@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Volume2, VolumeX } from 'lucide-react';
 import { useAppStore } from '@/store/useAppStore';
@@ -8,6 +8,15 @@ import { useAppStore } from '@/store/useAppStore';
 export function VolumeControl() {
     const [isOpen, setIsOpen] = useState(false);
     const { volume, setVolume, isAudioPlaying, setIsAudioPlaying } = useAppStore();
+    const [isMobile, setIsMobile] = useState(false);
+
+    // Detect mobile viewport
+    useEffect(() => {
+        const checkMobile = () => setIsMobile(window.innerWidth < 768);
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
+    }, []);
 
     return (
         <div className="relative">
@@ -21,10 +30,10 @@ export function VolumeControl() {
             <AnimatePresence>
                 {isOpen && (
                     <motion.div
-                        initial={{ opacity: 0, y: 10, scale: 0.9 }}
+                        initial={{ opacity: 0, y: isMobile ? -10 : 10, scale: 0.9 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: 10, scale: 0.9 }}
-                        className="absolute bottom-full mb-4 left-1/2 -translate-x-1/2 p-4 rounded-2xl bg-black/60 backdrop-blur-md border border-white/20 flex flex-col items-center gap-4 w-12"
+                        exit={{ opacity: 0, y: isMobile ? -10 : 10, scale: 0.9 }}
+                        className={`absolute ${isMobile ? 'top-full mt-3' : 'bottom-full mb-4'} left-1/2 -translate-x-1/2 p-4 rounded-2xl bg-black/60 backdrop-blur-md border border-white/20 flex flex-col items-center gap-4 w-12`}
                     >
                         <div className="h-32 w-1 bg-white/20 rounded-full relative">
                             <div
